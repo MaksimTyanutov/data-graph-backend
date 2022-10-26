@@ -1,1 +1,3 @@
 .idea
+*.json
+config/config.yaml
