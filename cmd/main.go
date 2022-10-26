@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+
 	if len(os.Args) != 2 {
 		log.Fatal("Incorrect number of arguments: ", len(os.Args), ". Intended number - 2")
 	}
@@ -17,10 +18,18 @@ func main() {
 	if err != nil {
 		log.Fatal("Can't connect to db - ", err.Error())
 	}
+
 	str, err := dbConnection.Test()
 	if err != nil {
 		log.Print("Test don't work: ", err.Error())
 	} else {
-		fmt.Print(str)
+		fmt.Println(str)
+	}
+
+	total, err := dbConnection.GetNumberCompanies()
+	if err != nil {
+		log.Print("GetNumberCompanies don't work: ", err.Error())
+	} else {
+		fmt.Println(total)
 	}
 }

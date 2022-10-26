@@ -43,12 +43,6 @@ func NewConnection(config *properties.Config) (*PSQLConnector, error) {
 	}, nil
 }
 
-//func getConnection(db_ *sql.DB) (*PSQLConnector, error) {
-//	return &PSQLConnector{
-//		db: db_,
-//	}, nil
-//}
-
 func (c *PSQLConnector) Test() (string, error) {
 	var str string
 	command := fmt.Sprintf("SELECT name From getcompanies(companyid=>'%d')", 1)
@@ -56,4 +50,13 @@ func (c *PSQLConnector) Test() (string, error) {
 		return "", err
 	}
 	return str, nil
+}
+
+func (c *PSQLConnector) GetNumberCompanies() (int, error) {
+	var total int
+	command := fmt.Sprintf("SELECT COUNT(*) From \"Company\"")
+	if err := c.db.QueryRow(command).Scan(&total); err != nil {
+		return 0, err
+	}
+	return total, nil
 }
