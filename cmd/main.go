@@ -19,17 +19,12 @@ func main() {
 		log.Fatal("Can't connect to db - ", err.Error())
 	}
 
-	str, err := dbConnection.Test()
+	companies, err := dbConnection.GetAllCompanies()
 	if err != nil {
-		log.Print("Test don't work: ", err.Error())
+		log.Print("GetAllCompanies don't work: ", err.Error())
 	} else {
-		fmt.Println(str)
-	}
-
-	total, err := dbConnection.GetNumberCompanies()
-	if err != nil {
-		log.Print("GetNumberCompanies don't work: ", err.Error())
-	} else {
-		fmt.Println(total)
+		for i := 0; i < len(companies); i++ {
+			fmt.Println(companies[i].GetName())
+		}
 	}
 }
