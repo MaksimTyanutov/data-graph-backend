@@ -3,6 +3,7 @@ package dbConnector
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	_ "github.com/lib/pq"
 
@@ -77,4 +78,35 @@ func (con *PSQLConnector) GetAllCompanies() ([]Company, error) {
 		}
 	}
 	return companies, nil
+}
+
+func (con *PSQLConnector) GetNumberProjects() (int, error) {
+	var total int
+	command := fmt.Sprintf("SELECT COUNT(*) From \"Projects\"")
+	if err := con.db.QueryRow(command).Scan(&total); err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+func (con *PSQLConnector) GetAllProjects() ([]Project, error) {
+	projects := make([]Project, 0)
+	command := fmt.Sprintf("SELECT * From \"Projects\"")
+	rows, err := con.db.Query(command)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		p := new(Project)
+		if err := rows.Scan(&p.id, &p.name, &p.description, &p.version,
+			&p.companyId, &p.projectId, &p.projectVersionIndex, &p.date, &p.lastNodeIds, &p.hasTwoInputs,
+			&p.projectTypeIds, &p.url); err != nil {
+			return nil, err
+		}
+		projects = append(projects, *p)
+	}
+	if err := rows.Err(); err != nil {
+		log.Fatal(err.Error())
+	}
+	return projects, nil
 }

@@ -27,15 +27,20 @@ func (c *Company) GetName() string {
 }
 
 type Project struct {
-	id                  int
-	projectId           int
-	projectTypeIds      []int
-	name                string
-	companyId           int
-	version             string
-	projectVersionIndex int
-	date                string
-	lastNodeIds         []int
-	hasTwoInputs        bool
-	url                 string
+	id                  sql.NullInt32
+	name                sql.NullString
+	description         sql.NullString
+	version             sql.NullString
+	companyId           sql.NullInt32
+	projectId           sql.NullInt32
+	projectVersionIndex sql.NullInt32
+	date                sql.NullString
+	lastNodeIds         []uint8
+	hasTwoInputs        sql.NullBool
+	projectTypeIds      []uint8
+	url                 sql.NullString
+}
+
+func (p *Project) GetName() string {
+	return p.name.String
 }

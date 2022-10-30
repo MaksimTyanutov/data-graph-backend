@@ -27,4 +27,13 @@ func main() {
 			fmt.Println(companies[i].GetName())
 		}
 	}
+
+	projects, err := dbConnection.GetAllProjects()
+	if err != nil {
+		log.Print("GetAllProjects don't work: ", err.Error())
+	} else {
+		for i := 0; i < len(projects); i++ {
+			fmt.Println(projects[i].GetName())
+		}
+	}
 }
