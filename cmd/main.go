@@ -1,9 +1,10 @@
 package main
 
 import (
+	"data-graph-backend/pkg/dataStructers"
 	"data-graph-backend/pkg/dbConnector"
 	"data-graph-backend/pkg/properties"
-	"fmt"
+	"data-graph-backend/pkg/utils"
 	"log"
 	"os"
 )
@@ -19,21 +20,35 @@ func main() {
 		log.Fatal("Can't connect to db - ", err.Error())
 	}
 
-	companies, err := dbConnection.GetAllCompanies()
+	//GET ALL COMPANIES
+	jsonStr := "["
+	companiesDb, err := dbConnection.GetAllCompanies()
+	companies := make([]dataStructers.Company, 0)
 	if err != nil {
 		log.Print("GetAllCompanies don't work: ", err.Error())
 	} else {
-		for i := 0; i < len(companies); i++ {
-			fmt.Println(companies[i].GetName())
+		for i := 0; i < len(companiesDb); i++ {
+			company := companiesDb[i].Transform()
+			companies = append(companies, company)
+			jsonStr = jsonStr + company.JSON() + ","
 		}
 	}
+	jsonStr = jsonStr + "]"
+	utils.ToFile(jsonStr, "Companies")
 
-	projects, err := dbConnection.GetAllProjects()
+	//GET ALL PROJECTS
+	jsonStr = "["
+	projectsDb, err := dbConnection.GetAllProjects()
 	if err != nil {
 		log.Print("GetAllProjects don't work: ", err.Error())
 	} else {
-		for i := 0; i < len(projects); i++ {
-			fmt.Println(projects[i].GetName())
+		projects := make([]dataStructers.Project, 0)
+		for i := 0; i < len(projectsDb); i++ {
+			project := projectsDb[i].Transform()
+			projects = append(projects, project)
+			jsonStr = jsonStr + project.JSON() + ","
 		}
 	}
+	jsonStr = jsonStr + "]"
+	utils.ToFile(jsonStr, "Projects")
 }

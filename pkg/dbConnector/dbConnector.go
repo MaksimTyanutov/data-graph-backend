@@ -91,16 +91,15 @@ func (con *PSQLConnector) GetNumberProjects() (int, error) {
 
 func (con *PSQLConnector) GetAllProjects() ([]Project, error) {
 	projects := make([]Project, 0)
-	command := fmt.Sprintf("SELECT * From \"Projects\"")
+	command := fmt.Sprintf("SELECT * FROM getprojects(namesearch => '')")
 	rows, err := con.db.Query(command)
 	if err != nil {
 		return nil, err
 	}
 	for rows.Next() {
 		p := new(Project)
-		if err := rows.Scan(&p.id, &p.name, &p.description, &p.version,
-			&p.companyId, &p.projectId, &p.projectVersionIndex, &p.date, &p.lastNodeIds, &p.hasTwoInputs,
-			&p.projectTypeIds, &p.url); err != nil {
+		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions); err != nil {
 			return nil, err
 		}
 		projects = append(projects, *p)
