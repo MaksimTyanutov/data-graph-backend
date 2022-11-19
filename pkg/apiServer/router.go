@@ -3,6 +3,7 @@ package apiServer
 import (
 	"data-graph-backend/pkg/dataStructers"
 	"data-graph-backend/pkg/dbConnector"
+	"data-graph-backend/pkg/graphBuilder"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -16,6 +17,7 @@ func configureRouters(r *Router) {
 	http.HandleFunc("/test", r.handleTestAnswer)
 	http.HandleFunc("/Companies", r.handleCompanies)
 	http.HandleFunc("/Projects", r.handleProjects)
+	http.HandleFunc("/get", r.getGraph)
 }
 
 func (rout *Router) handleTestAnswer(rw http.ResponseWriter, r *http.Request) {
@@ -52,13 +54,22 @@ func (rout *Router) handleCompanies(rw http.ResponseWriter, r *http.Request) {
 	respond(rw, r, http.StatusOK, companies)
 }
 
-func parseError(w http.ResponseWriter, r *http.Request, code int, err error) {
-	respond(w, r, code, map[string]string{"error": err.Error()})
+// GET GRAPH
+func (rout *Router) getGraph(rw http.ResponseWriter, r *http.Request) {
+	graph := graphBuilder.GetGraph(rout.dbConnector)
+	respond(rw, r, http.StatusOK, graph)
 }
+
+//func parseError(w http.ResponseWriter, r *http.Request, code int, err error) {
+//	respond(w, r, code, map[string]string{"error": err.Error()})
+//}
 
 func respond(w http.ResponseWriter, r *http.Request, code int, date interface{}) {
 	w.WriteHeader(code)
 	if date != nil {
-		json.NewEncoder(w).Encode(date)
+		err := json.NewEncoder(w).Encode(date)
+		if err != nil {
+			log.Print("Error while responding: " + err.Error() + ".\nRequest: " + r.URL.String())
+		}
 	}
 }
