@@ -109,3 +109,24 @@ func (con *PSQLConnector) GetAllProjects() ([]Project, error) {
 	}
 	return projects, nil
 }
+
+func (con *PSQLConnector) GetShortProjects() ([]Project, error) {
+	projects := make([]Project, 0)
+	command := fmt.Sprintf("SELECT * FROM getprojects(shortform := true)")
+	rows, err := con.db.Query(command)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		p := new(Project)
+		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions); err != nil {
+			return nil, err
+		}
+		projects = append(projects, *p)
+	}
+	if err := rows.Err(); err != nil {
+		log.Fatal(err.Error())
+	}
+	return projects, nil
+}

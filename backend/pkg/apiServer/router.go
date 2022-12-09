@@ -17,7 +17,8 @@ func configureRouters(r *Router) {
 	http.HandleFunc("/test", r.handleTestAnswer)
 	http.HandleFunc("/Companies", r.handleCompanies)
 	http.HandleFunc("/Projects", r.handleProjects)
-	http.HandleFunc("/get", r.getGraph)
+	http.HandleFunc("/get:full", r.handleGetGraphFull)
+	http.HandleFunc("/get:short", r.handleGetGraphShort)
 }
 
 func (rout *Router) handleTestAnswer(rw http.ResponseWriter, r *http.Request) {
@@ -54,9 +55,15 @@ func (rout *Router) handleCompanies(rw http.ResponseWriter, r *http.Request) {
 	respond(rw, r, http.StatusOK, companies)
 }
 
-// GET GRAPH
-func (rout *Router) getGraph(rw http.ResponseWriter, r *http.Request) {
-	graph := graphBuilder.GetGraph(rout.dbConnector)
+// GET GRAPH FULL
+func (rout *Router) handleGetGraphFull(rw http.ResponseWriter, r *http.Request) {
+	graph := graphBuilder.GetGraph(rout.dbConnector, false)
+	respond(rw, r, http.StatusOK, graph)
+}
+
+// GET GRAPH SHORT
+func (rout *Router) handleGetGraphShort(rw http.ResponseWriter, r *http.Request) {
+	graph := graphBuilder.GetGraph(rout.dbConnector, true)
 	respond(rw, r, http.StatusOK, graph)
 }
 
