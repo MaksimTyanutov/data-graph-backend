@@ -82,8 +82,39 @@ func (p *Project) JSON() string {
 	return string(marshal)
 }
 
-type Graph struct {
-	Companies []Company
-	Projects  []Project
-	Links     map[int]int
+type Product struct {
+	Id      int
+	Name    string
+	Version string
+	Company struct {
+		Id   int
+		Name string
+	}
+	Link        string
+	Description string
+	Svg         string
+	Year        string
+	Departments []departments
+}
+
+type CompanyInfo struct {
+	Id              int
+	Name            string
+	Ceo             string
+	Description     string
+	EmployeeNum     int
+	FoundationYear  string
+	CompanyTypeName []string
+	Products        []ProductShort
+}
+
+type ProductShort struct {
+	Id   int
+	Name string
+	Year string
+}
+
+type departments struct {
+	Id   int
+	Name string
 }

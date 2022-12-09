@@ -1,6 +1,7 @@
 package dbConnector
 
 import (
+	"data-graph-backend/pkg/dataStructers"
 	"database/sql"
 	"fmt"
 	"log"
@@ -129,4 +130,46 @@ func (con *PSQLConnector) GetShortProjects() ([]Project, error) {
 		log.Fatal(err.Error())
 	}
 	return projects, nil
+}
+
+// Get info for company
+func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, error) {
+	command := fmt.Sprintf("SELECT * From getcompanies(companyid := '%d')", id)
+	c := new(Company)
+	if err := con.db.QueryRow(command).Scan(&c.id, &c.name, &c.namesimilarity, &c.description, &c.descsimilarity,
+		&c.employeeNum, &c.foundationyear, &c.companytypeenum, &c.companytypename, &c.ownerid, &c.ownername,
+		&c.ownernamessimilarity, &c.address, &c.iconpath); err != nil {
+		return nil, err
+	}
+	company := c.Transform()
+	command = fmt.Sprintf("SELECT * From getprojects(companyids := '{%d}')", id)
+	rows, err := con.db.Query(command)
+	if err != nil {
+		return nil, err
+	}
+	products := make([]dataStructers.ProductShort, 0)
+	for rows.Next() {
+		p := new(Project)
+		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions); err != nil {
+			return nil, err
+		}
+		prod := dataStructers.ProductShort{
+			Id:   int(p.nodeId.Int32),
+			Name: p.name.String,
+			Year: p.date.String,
+		}
+		products = append(products, prod)
+	}
+	ci := &dataStructers.CompanyInfo{
+		Id:              company.Id,
+		Name:            company.Name,
+		Ceo:             company.OwnerName,
+		Description:     company.Description,
+		EmployeeNum:     company.EmployeeNum,
+		FoundationYear:  company.FoundationYear,
+		CompanyTypeName: company.CompanyTypeName,
+		Products:        products,
+	}
+	return ci, nil
 }

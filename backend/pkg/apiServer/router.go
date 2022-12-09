@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type Router struct {
@@ -15,10 +16,11 @@ type Router struct {
 
 func configureRouters(r *Router) {
 	http.HandleFunc("/test", r.handleTestAnswer)
-	http.HandleFunc("/Companies", r.handleCompanies)
-	http.HandleFunc("/Projects", r.handleProjects)
+	//http.HandleFunc("/Companies", r.handleCompanies)
+	//http.HandleFunc("/Projects", r.handleProjects)
 	http.HandleFunc("/get:full", r.handleGetGraphFull)
 	http.HandleFunc("/get:short", r.handleGetGraphShort)
+	http.HandleFunc("/company", r.handleCompany)
 }
 
 func (rout *Router) handleTestAnswer(rw http.ResponseWriter, r *http.Request) {
@@ -65,6 +67,17 @@ func (rout *Router) handleGetGraphFull(rw http.ResponseWriter, r *http.Request) 
 func (rout *Router) handleGetGraphShort(rw http.ResponseWriter, r *http.Request) {
 	graph := graphBuilder.GetGraph(rout.dbConnector, true)
 	respond(rw, r, http.StatusOK, graph)
+}
+
+// Get company information
+func (rout *Router) handleCompany(rw http.ResponseWriter, r *http.Request) {
+	idStr := r.FormValue("id")
+	companyID, err := strconv.Atoi(idStr)
+	company, err := rout.dbConnector.GetCompanyInfo(companyID)
+	if err != nil {
+		log.Print("GetCompanyInfo don't work: ", err.Error())
+	}
+	respond(rw, r, http.StatusOK, company)
 }
 
 //func parseError(w http.ResponseWriter, r *http.Request, code int, err error) {
