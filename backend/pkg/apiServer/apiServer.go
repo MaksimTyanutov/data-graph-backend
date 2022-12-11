@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	bindAddr = ":8040"
+	bindAddr = ":7328"
 )
 
 func Start(config *properties.Config) error {
@@ -23,5 +23,6 @@ func Start(config *properties.Config) error {
 
 	configureRouters(router)
 
+	log.Println("Listening on " + bindAddr)
 	return http.ListenAndServe(bindAddr, nil)
 }

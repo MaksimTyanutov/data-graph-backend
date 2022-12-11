@@ -21,9 +21,11 @@ func configureRouters(r *Router) {
 	http.HandleFunc("/get:full", r.handleGetGraphFull)
 	http.HandleFunc("/get:short", r.handleGetGraphShort)
 	http.HandleFunc("/company", r.handleCompany)
+	http.HandleFunc("/product", r.handleProduct)
 }
 
 func (rout *Router) handleTestAnswer(rw http.ResponseWriter, r *http.Request) {
+	rout.setCorsHeaders(&rw)
 	respond(rw, r, http.StatusOK, "test")
 }
 
@@ -39,6 +41,7 @@ func (rout *Router) handleProjects(rw http.ResponseWriter, r *http.Request) {
 			projects = append(projects, project)
 		}
 	}
+	rout.setCorsHeaders(&rw)
 	respond(rw, r, http.StatusOK, projects)
 }
 
@@ -54,19 +57,27 @@ func (rout *Router) handleCompanies(rw http.ResponseWriter, r *http.Request) {
 			companies = append(companies, company)
 		}
 	}
+	rout.setCorsHeaders(&rw)
 	respond(rw, r, http.StatusOK, companies)
 }
 
 // GET GRAPH FULL
 func (rout *Router) handleGetGraphFull(rw http.ResponseWriter, r *http.Request) {
 	graph := graphBuilder.GetGraph(rout.dbConnector, false)
+	rout.setCorsHeaders(&rw)
 	respond(rw, r, http.StatusOK, graph)
 }
 
 // GET GRAPH SHORT
 func (rout *Router) handleGetGraphShort(rw http.ResponseWriter, r *http.Request) {
 	graph := graphBuilder.GetGraph(rout.dbConnector, true)
+	rout.setCorsHeaders(&rw)
 	respond(rw, r, http.StatusOK, graph)
+}
+
+func (rout *Router) setCorsHeaders(rw *http.ResponseWriter) {
+	(*rw).Header().Set("Access-Control-Allow-Origin", "*")
+	(*rw).Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
 
 // Get company information
@@ -77,7 +88,20 @@ func (rout *Router) handleCompany(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print("GetCompanyInfo don't work: ", err.Error())
 	}
+	rout.setCorsHeaders(&rw)
 	respond(rw, r, http.StatusOK, company)
+}
+
+// Get product information
+func (rout *Router) handleProduct(rw http.ResponseWriter, r *http.Request) {
+	idStr := r.FormValue("id")
+	productID, err := strconv.Atoi(idStr)
+	product, err := rout.dbConnector.GetProductInfo(productID)
+	if err != nil {
+		log.Print("GetCompanyInfo don't work: ", err.Error())
+	}
+	rout.setCorsHeaders(&rw)
+	respond(rw, r, http.StatusOK, product)
 }
 
 //func parseError(w http.ResponseWriter, r *http.Request, code int, err error) {
@@ -86,6 +110,12 @@ func (rout *Router) handleCompany(rw http.ResponseWriter, r *http.Request) {
 
 func respond(w http.ResponseWriter, r *http.Request, code int, date interface{}) {
 	w.WriteHeader(code)
+
+	//Allow CORS here By * or specific origin
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	// return "OKOK"
 	if date != nil {
 		err := json.NewEncoder(w).Encode(date)
 		if err != nil {

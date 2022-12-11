@@ -7,20 +7,19 @@ import (
 )
 
 var colors = []string{
-	"808080",
-	"FFFFFF",
-	"800000",
-	"FF0000",
-	"800080",
-	"FF00FF",
-	"008000",
-	"00FF00",
-	"808000",
-	"FFFF00",
-	"000080",
-	"0000FF",
-	"008080",
-	"00FFFF",
+	"#808080",
+	"#800000",
+	"#FF0000",
+	"#800080",
+	"#FF00FF",
+	"#008000",
+	"#00FF00",
+	"#808000",
+	"#FFFF00",
+	"#000080",
+	"#0000FF",
+	"#008080",
+	"#00FFFF",
 }
 
 // GET ALL PROJECTS
@@ -29,7 +28,7 @@ func GetProjects(dbConnector *dbConnector.PSQLConnector, minimized bool) []dataS
 	if !minimized {
 		projectsDb, err := dbConnector.GetAllProjects()
 		if err != nil {
-			log.Print("GetAllProjects don't work: ", err.Error())
+			log.Print("graphBuilder:GetProjects(1). GetAllProjects don't work: ", err.Error())
 		} else {
 			for i := 0; i < len(projectsDb); i++ {
 				project := projectsDb[i].Transform()
@@ -39,7 +38,7 @@ func GetProjects(dbConnector *dbConnector.PSQLConnector, minimized bool) []dataS
 	} else {
 		projectsDb, err := dbConnector.GetShortProjects()
 		if err != nil {
-			log.Print("GetShortProjects don't work: ", err.Error())
+			log.Print("graphBuilder:GetProjects(2). GetShortProjects don't work: ", err.Error())
 		} else {
 			for i := 0; i < len(projectsDb); i++ {
 				project := projectsDb[i].Transform()
@@ -55,7 +54,7 @@ func GetCompanies(dbConnector *dbConnector.PSQLConnector) []dataStructers.Compan
 	companiesDb, err := dbConnector.GetAllCompanies()
 	companies := make([]dataStructers.Company, 0)
 	if err != nil {
-		log.Print("GetAllCompanies don't work: ", err.Error())
+		log.Print("graphBuilder:GetCompanies. GetAllCompanies don't work: ", err.Error())
 	} else {
 		for i := 0; i < len(companiesDb); i++ {
 			company := companiesDb[i].Transform()

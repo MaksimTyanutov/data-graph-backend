@@ -72,6 +72,7 @@ type Project struct {
 	Date            string
 	Url             string
 	PreviousNodeIds []int
+	PressURL        string
 }
 
 func (p *Project) JSON() string {
@@ -83,38 +84,38 @@ func (p *Project) JSON() string {
 }
 
 type Product struct {
-	Id      int
-	Name    string
-	Version string
+	Id      int    `json:"id"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
 	Company struct {
-		Id   int
-		Name string
-	}
-	Link        string
-	Description string
-	Svg         string
-	Year        string
-	Departments []departments
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+	} `json:"company"`
+	Link        string       `json:"link"`
+	Description string       `json:"description"`
+	Svg         string       `json:"svg"`
+	Year        string       `json:"year"`
+	Departments []Department `json:"departments"`
 }
 
 type CompanyInfo struct {
-	Id              int
-	Name            string
-	Ceo             string
-	Description     string
-	EmployeeNum     int
-	FoundationYear  string
-	CompanyTypeName []string
-	Products        []ProductShort
+	Id              int            `json:"id"`
+	Name            string         `json:"name"`
+	Ceo             string         `json:"ceo"`
+	Description     string         `json:"description"`
+	EmployeeNum     int            `json:"staffSize"`
+	FoundationYear  string         `json:"year"`
+	CompanyTypeName []string       `json:"departments"`
+	Products        []ProductShort `json:"products"`
 }
 
 type ProductShort struct {
-	Id   int
-	Name string
-	Year string
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	Year string `json:"year"`
 }
 
-type departments struct {
-	Id   int
-	Name string
+type Department struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
 }

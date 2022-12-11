@@ -22,7 +22,7 @@ type Config struct {
 }
 
 func GetConfig(path string) *Config {
-	file, err := os.Open(path + "\\config\\config.yaml")
+	file, err := os.Open(path + "/config/config.yaml")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

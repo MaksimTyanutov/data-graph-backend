@@ -3,6 +3,7 @@ package dbConnector
 import (
 	"data-graph-backend/pkg/dataStructers"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 
@@ -10,6 +11,8 @@ import (
 
 	"data-graph-backend/pkg/properties"
 )
+
+var companyIdShift = 100000
 
 func newDB(config *properties.Config) (*sql.DB, error) {
 	dbHost := config.DbSettings.DbHost
@@ -64,19 +67,20 @@ func (con *PSQLConnector) GetNumberCompanies() (int, error) {
 }
 
 func (con *PSQLConnector) GetAllCompanies() ([]Company, error) {
-	total, err := con.GetNumberCompanies()
+	companies := make([]Company, 0)
+	command := fmt.Sprintf("SELECT * From getcompanies()")
+	rows, err := con.db.Query(command)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Can't execute command: " + command + "; " + err.Error())
 	}
-	companies := make([]Company, total)
-	for i := 1; i <= total; i++ {
-		c := &companies[i-1]
-		command := fmt.Sprintf("SELECT * From getcompanies(companyid=>'%d')", i)
-		if err := con.db.QueryRow(command).Scan(&c.id, &c.name, &c.namesimilarity, &c.description, &c.descsimilarity,
+	for rows.Next() {
+		c := new(Company)
+		if err := rows.Scan(&c.id, &c.name, &c.namesimilarity, &c.description, &c.descsimilarity,
 			&c.employeeNum, &c.foundationyear, &c.companytypeenum, &c.companytypename, &c.ownerid, &c.ownername,
 			&c.ownernamessimilarity, &c.address, &c.iconpath); err != nil {
-			return nil, err
+			return nil, errors.New("Can't read company info: " + err.Error())
 		}
+		companies = append(companies, *c)
 	}
 	return companies, nil
 }
@@ -100,7 +104,7 @@ func (con *PSQLConnector) GetAllProjects() ([]Project, error) {
 	for rows.Next() {
 		p := new(Project)
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
 			return nil, err
 		}
 		projects = append(projects, *p)
@@ -121,7 +125,7 @@ func (con *PSQLConnector) GetShortProjects() ([]Project, error) {
 	for rows.Next() {
 		p := new(Project)
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
 			return nil, err
 		}
 		projects = append(projects, *p)
@@ -134,6 +138,7 @@ func (con *PSQLConnector) GetShortProjects() ([]Project, error) {
 
 // Get info for company
 func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, error) {
+	id = id - companyIdShift
 	command := fmt.Sprintf("SELECT * From getcompanies(companyid := '%d')", id)
 	c := new(Company)
 	if err := con.db.QueryRow(command).Scan(&c.id, &c.name, &c.namesimilarity, &c.description, &c.descsimilarity,
@@ -151,7 +156,7 @@ func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, er
 	for rows.Next() {
 		p := new(Project)
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
 			return nil, err
 		}
 		prod := dataStructers.ProductShort{
@@ -172,4 +177,46 @@ func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, er
 		Products:        products,
 	}
 	return ci, nil
+}
+
+// Get info for product
+func (con *PSQLConnector) GetProductInfo(id int) (*dataStructers.Product, error) {
+	command := fmt.Sprintf("SELECT * From getprojects(searchnodeid := '%d')", id)
+	p := new(Project)
+	if err := con.db.QueryRow(command).Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
+		&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
+		return nil, err
+	}
+	command = fmt.Sprintf("SELECT name From getcompanies(companyid := '%d')", int(p.companyId.Int32))
+	var companyName sql.NullString
+	if err := con.db.QueryRow(command).Scan(&companyName); err != nil {
+		return nil, err
+	}
+	product := p.Transform()
+	departments := make([]dataStructers.Department, 0)
+	for i := 0; i < len(product.ProjectTypes); i++ {
+		dep := dataStructers.Department{
+			Id:   int(rune(int(p.projectTypesId[i*2]))),
+			Name: product.ProjectTypes[i],
+		}
+		departments = append(departments, dep)
+	}
+	pi := &dataStructers.Product{
+		Id:      product.Id,
+		Name:    product.Name,
+		Version: product.Version,
+		Company: struct {
+			Id   int    `json:"id"`
+			Name string `json:"name"`
+		}{
+			Id:   product.CompanyId,
+			Name: companyName.String,
+		},
+		Link:        product.PressURL,
+		Description: product.Description,
+		Svg:         product.Url,
+		Year:        product.Date,
+		Departments: departments,
+	}
+	return pi, nil
 }

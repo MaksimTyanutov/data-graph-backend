@@ -64,6 +64,7 @@ type Project struct {
 	date              sql.NullString
 	url               sql.NullString
 	previousVersions  sql.NullString
+	pressURL          sql.NullString
 }
 
 func (p *Project) GetName() string {
@@ -88,6 +89,7 @@ func (p *Project) Transform() dataStructers.Project {
 	str := strings.Fields(str_)
 	p_.ProjectTypes = str
 	p_.Url = p.url.String
+	p_.PressURL = p.pressURL.String
 	str_ = p.previousVersions.String
 	str_ = strings.ReplaceAll(str_, ",", " ")
 	str_ = strings.ReplaceAll(str_, "{", " ")
