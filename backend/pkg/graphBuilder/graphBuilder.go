@@ -3,6 +3,7 @@ package graphBuilder
 import (
 	"data-graph-backend/pkg/dataStructers"
 	"data-graph-backend/pkg/dbConnector"
+	"data-graph-backend/pkg/properties"
 	"log"
 )
 
@@ -77,7 +78,7 @@ func GetLinks(projects []dataStructers.Project) []Link {
 			}
 		} else {
 			links = append(links, Link{
-				Source: projects[i].CompanyId + companyIdShift,
+				Source: projects[i].CompanyId + properties.CompanyIdShift,
 				Target: projects[i].Id,
 				Color:  colors[projects[i].CompanyId%len(colors)],
 			})

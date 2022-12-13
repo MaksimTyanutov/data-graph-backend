@@ -1,8 +1,10 @@
 package graphBuilder
 
-import "data-graph-backend/pkg/dataStructers"
+import (
+	"data-graph-backend/pkg/dataStructers"
+	"data-graph-backend/pkg/properties"
+)
 
-var companyIdShift = 100000
 var sizeCompany = 900
 var sizeProduct = 600
 
@@ -23,7 +25,7 @@ func TransformComp(companies []dataStructers.Company) []Node {
 	nodes := make([]Node, 0)
 	for i := 0; i < len(companies); i++ {
 		node := Node{
-			Id:       companies[i].Id + companyIdShift,
+			Id:       companies[i].Id + properties.CompanyIdShift,
 			Svg:      companies[i].IconPath,
 			NodeType: "Компания",
 			Size:     sizeCompany,

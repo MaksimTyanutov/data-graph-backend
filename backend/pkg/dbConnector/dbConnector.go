@@ -12,8 +12,6 @@ import (
 	"data-graph-backend/pkg/properties"
 )
 
-var companyIdShift = 100000
-
 func newDB(config *properties.Config) (*sql.DB, error) {
 	dbHost := config.DbSettings.DbHost
 	dbName := config.DbSettings.DbName
@@ -138,13 +136,13 @@ func (con *PSQLConnector) GetShortProjects() ([]Project, error) {
 
 // Get info for company
 func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, error) {
-	id = id - companyIdShift
+	id = id - properties.CompanyIdShift
 	command := fmt.Sprintf("SELECT * From getcompanies(companyid := '%d')", id)
 	c := new(Company)
 	if err := con.db.QueryRow(command).Scan(&c.id, &c.name, &c.namesimilarity, &c.description, &c.descsimilarity,
 		&c.employeeNum, &c.foundationyear, &c.companytypeenum, &c.companytypename, &c.ownerid, &c.ownername,
 		&c.ownernamessimilarity, &c.address, &c.iconpath); err != nil {
-		return nil, err
+		return nil, errors.New("Can't execute command: " + command + ". Error:" + err.Error())
 	}
 	company := c.Transform()
 	command = fmt.Sprintf("SELECT * From getprojects(companyids := '{%d}')", id)
@@ -160,9 +158,10 @@ func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, er
 			return nil, err
 		}
 		prod := dataStructers.ProductShort{
-			Id:   int(p.nodeId.Int32),
-			Name: p.name.String,
-			Year: p.date.String,
+			Id:         int(p.nodeId.Int32),
+			Name:       p.name.String,
+			Year:       p.date.String,
+			IsVerified: p.pressURL.String != "",
 		}
 		products = append(products, prod)
 	}

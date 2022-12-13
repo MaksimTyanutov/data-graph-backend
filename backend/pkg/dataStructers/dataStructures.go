@@ -110,12 +110,39 @@ type CompanyInfo struct {
 }
 
 type ProductShort struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
-	Year string `json:"year"`
+	Id         int    `json:"id"`
+	Name       string `json:"name"`
+	Year       string `json:"year"`
+	IsVerified bool   `json:"isVerified"`
 }
 
 type Department struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+type TimelineCompany struct {
+	Company struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+		Year string `json:"year"`
+	} `json:"company"`
+	Product struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+		Year string `json:"year"`
+	} `json:"product"`
+}
+
+type TimelineProducts struct {
+	Product1 struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+		Year string `json:"year"`
+	} `json:"product-1"`
+	Product2 struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+		Year string `json:"year"`
+	} `json:"product-2"`
 }
