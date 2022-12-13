@@ -24,6 +24,7 @@ func configureRouters(r *Router) {
 	http.HandleFunc("/product", r.handleProduct)
 	http.HandleFunc("/link/products", r.handleTimelineProduct)
 	http.HandleFunc("/link/company", r.handleTimelineCompany)
+	http.HandleFunc("/departments", r.handleGetAllDepartments)
 }
 
 func (rout *Router) handleTestAnswer(rw http.ResponseWriter, r *http.Request) {
@@ -202,6 +203,17 @@ func (rout *Router) handleTimelineProduct(rw http.ResponseWriter, r *http.Reques
 	}
 	rout.setCorsHeaders(&rw)
 	respond(rw, r, http.StatusOK, timeline)
+}
+
+func (rout *Router) handleGetAllDepartments(rw http.ResponseWriter, r *http.Request) {
+	departments, err := rout.dbConnector.GetAllDepartments()
+	if err != nil {
+		log.Print("GetAllDepartments don't work: ", err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	rout.setCorsHeaders(&rw)
+	respond(rw, r, http.StatusOK, departments)
 }
 
 //func parseError(w http.ResponseWriter, r *http.Request, code int, err error) {

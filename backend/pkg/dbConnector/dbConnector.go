@@ -219,3 +219,24 @@ func (con *PSQLConnector) GetProductInfo(id int) (*dataStructers.Product, error)
 	}
 	return pi, nil
 }
+
+func (con *PSQLConnector) GetAllDepartments() ([]dataStructers.Department, error) {
+	command := fmt.Sprintf("select * from \"Departments\"")
+	departments := make([]dataStructers.Department, 0)
+	rows, err := con.db.Query(command)
+	if err != nil {
+		return nil, errors.New("GetAllDepartments(1). Can't get departments from DB: " + err.Error())
+	}
+	for rows.Next() {
+		d := new(Department)
+		if err := rows.Scan(&d.id, &d.name); err != nil {
+			return nil, err
+		}
+		department := d.Transform()
+		departments = append(departments, department)
+	}
+	if err := rows.Err(); err != nil {
+		log.Println("GetAllDepartments(2). Can't get departments from DB: " + err.Error())
+	}
+	return departments, nil
+}

@@ -109,3 +109,18 @@ func (p *Project) Transform() dataStructers.Project {
 	p_.PreviousNodeIds = lastNodes
 	return p_
 }
+
+type Department struct {
+	id   sql.NullInt32
+	name sql.NullString
+}
+
+func (d *Department) Transform() dataStructers.Department {
+	d_ := dataStructers.Department{}
+	d_.Id = int(d.id.Int32)
+	str_ := d.name.String
+	str_ = strings.ReplaceAll(str_, "\n", "")
+	str_ = strings.ReplaceAll(str_, "\"", "")
+	d_.Name = str_
+	return d_
+}
