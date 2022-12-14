@@ -72,30 +72,34 @@ func GetLinks(projects []dataStructers.Project, short bool) []Link {
 			if short == false {
 				for j := 0; j < len(projects[i].PreviousNodeIds); j++ {
 					links = append(links, Link{
-						Source: projects[i].PreviousNodeIds[j],
-						Target: projects[i].Id,
-						Color:  colors[projects[i].CompanyId%len(colors)],
+						Source:  projects[i].PreviousNodeIds[j],
+						Target:  projects[i].Id,
+						Color:   colors[projects[i].CompanyId%len(colors)],
+						Opacity: standartOpacity,
 					})
 				}
 			} else {
 				for j := 0; j < len(projects[i].PreviousNodeIds)-1; j++ {
 					links = append(links, Link{
-						Source: projects[i].PreviousNodeIds[j],
-						Target: projects[i].Id,
-						Color:  colors[projects[i].CompanyId%len(colors)],
+						Source:  projects[i].PreviousNodeIds[j],
+						Target:  projects[i].Id,
+						Color:   colors[projects[i].CompanyId%len(colors)],
+						Opacity: standartOpacity,
 					})
 				}
 				links = append(links, Link{
-					Source: projects[i-1].Id,
-					Target: projects[i].Id,
-					Color:  colors[projects[i].CompanyId%len(colors)],
+					Source:  projects[i-1].Id,
+					Target:  projects[i].Id,
+					Color:   colors[projects[i].CompanyId%len(colors)],
+					Opacity: standartOpacity,
 				})
 			}
 		} else {
 			links = append(links, Link{
-				Source: projects[i].CompanyId + properties.CompanyIdShift,
-				Target: projects[i].Id,
-				Color:  colors[projects[i].CompanyId%len(colors)],
+				Source:  projects[i].CompanyId + properties.CompanyIdShift,
+				Target:  projects[i].Id,
+				Color:   colors[projects[i].CompanyId%len(colors)],
+				Opacity: standartOpacity,
 			})
 		}
 	}
