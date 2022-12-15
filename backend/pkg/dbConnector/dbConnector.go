@@ -240,3 +240,48 @@ func (con *PSQLConnector) GetAllDepartments() ([]dataStructers.Department, error
 	}
 	return departments, nil
 }
+
+func (con *PSQLConnector) GetCompanyFilters() (*dataStructers.CompanyFilters, error) {
+	CF := dataStructers.CompanyFilters{}
+
+	departments, err := con.GetAllDepartments()
+	if err != nil {
+		return nil, errors.New("GetCompanyFilters(3): " + err.Error())
+	}
+	CF.Departments = departments
+
+	CF.MinStaffSize, err = con.getMinEmployeeNum()
+	if err != nil {
+		return nil, err
+	}
+	CF.MaxStaffSize, err = con.getMaxEmployeeNum()
+	if err != nil {
+		return nil, err
+	}
+	CF.MinDate, err = con.getMinYearCompany()
+	if err != nil {
+		return nil, err
+	}
+	CF.MaxDate, err = con.getMaxYearCompany()
+	if err != nil {
+		return nil, err
+	}
+
+	return &CF, nil
+}
+
+func (con *PSQLConnector) GetProductFilters() (*dataStructers.ProductFilters, error) {
+	minDate, err := con.getMinDateProduct()
+	if err != nil {
+		return nil, err
+	}
+	maxDate, err := con.getMaxDateProduct()
+	if err != nil {
+		return nil, err
+	}
+	PF := dataStructers.ProductFilters{
+		MinDate: minDate,
+		MaxDate: maxDate,
+	}
+	return &PF, nil
+}

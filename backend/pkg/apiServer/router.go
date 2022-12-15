@@ -25,6 +25,7 @@ func configureRouters(r *Router) {
 	http.HandleFunc("/link/products", r.handleTimelineProduct)
 	http.HandleFunc("/link/company", r.handleTimelineCompany)
 	http.HandleFunc("/departments", r.handleGetAllDepartments)
+	http.HandleFunc("/filterPresets", r.handleGetFilterPresets)
 }
 
 func (rout *Router) handleTestAnswer(rw http.ResponseWriter, r *http.Request) {
@@ -214,6 +215,27 @@ func (rout *Router) handleGetAllDepartments(rw http.ResponseWriter, r *http.Requ
 	}
 	rout.setCorsHeaders(&rw)
 	respond(rw, r, http.StatusOK, departments)
+}
+
+func (rout *Router) handleGetFilterPresets(rw http.ResponseWriter, r *http.Request) {
+	companyFilters, err := rout.dbConnector.GetCompanyFilters()
+	if err != nil {
+		log.Print("GetFilterPresets(1) don't work: ", err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	productFilters, err := rout.dbConnector.GetProductFilters()
+	if err != nil {
+		log.Print("GetFilterPresets(2) don't work: ", err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	filterPresets := dataStructers.FilterPresets{
+		CompanyFilters: *companyFilters,
+		ProductFilters: *productFilters,
+	}
+	rout.setCorsHeaders(&rw)
+	respond(rw, r, http.StatusOK, filterPresets)
 }
 
 //func parseError(w http.ResponseWriter, r *http.Request, code int, err error) {

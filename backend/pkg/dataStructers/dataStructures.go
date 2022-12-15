@@ -146,3 +146,21 @@ type TimelineProducts struct {
 		Year string `json:"year"`
 	} `json:"product-2"`
 }
+
+type FilterPresets struct {
+	CompanyFilters CompanyFilters `json:"companyFilters"`
+	ProductFilters ProductFilters `json:"productFilters"`
+}
+
+type CompanyFilters struct {
+	MinStaffSize int          `json:"minStaffSize"`
+	MaxStaffSize int          `json:"maxStaffSize"`
+	MinDate      string       `json:"minDate"`
+	MaxDate      string       `json:"maxDate"`
+	Departments  []Department `json:"departments"`
+}
+
+type ProductFilters struct {
+	MinDate string `json:"minDate"`
+	MaxDate string `json:"maxDate"`
+}
