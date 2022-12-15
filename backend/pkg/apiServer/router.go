@@ -4,7 +4,9 @@ import (
 	"data-graph-backend/pkg/dataStructers"
 	"data-graph-backend/pkg/dbConnector"
 	"data-graph-backend/pkg/graphBuilder"
+	"data-graph-backend/pkg/utils"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -26,6 +28,7 @@ func configureRouters(r *Router) {
 	http.HandleFunc("/link/company", r.handleTimelineCompany)
 	http.HandleFunc("/departments", r.handleGetAllDepartments)
 	http.HandleFunc("/filterPresets", r.handleGetFilterPresets)
+	http.HandleFunc("/filters", r.handleFilters)
 }
 
 func (rout *Router) handleTestAnswer(rw http.ResponseWriter, r *http.Request) {
@@ -236,6 +239,41 @@ func (rout *Router) handleGetFilterPresets(rw http.ResponseWriter, r *http.Reque
 	}
 	rout.setCorsHeaders(&rw)
 	respond(rw, r, http.StatusOK, filterPresets)
+}
+
+func (rout *Router) handleFilters(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		respond(rw, r, http.StatusMethodNotAllowed, nil)
+		return
+	}
+
+	var filters dataStructers.Filters
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Print("Filters don't work: ", err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	err = json.Unmarshal(data, &filters)
+	if err != nil {
+		log.Print("Filters unmarshall don't work: ", err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	err = utils.ValidateFilter(filters)
+	if err != nil {
+		log.Print(err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	idArray, err := rout.dbConnector.GetFiltersID(filters)
+	if err != nil {
+		log.Print("GetFiltersID don't work: ", err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	rout.setCorsHeaders(&rw)
+	respond(rw, r, http.StatusOK, idArray)
 }
 
 //func parseError(w http.ResponseWriter, r *http.Request, code int, err error) {

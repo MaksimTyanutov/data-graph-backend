@@ -148,11 +148,11 @@ type TimelineProducts struct {
 }
 
 type FilterPresets struct {
-	CompanyFilters CompanyFilters `json:"companyFilters"`
-	ProductFilters ProductFilters `json:"productFilters"`
+	CompanyFilters CompanyFilterPresets `json:"companyFilters"`
+	ProductFilters ProductFilterPresets `json:"productFilters"`
 }
 
-type CompanyFilters struct {
+type CompanyFilterPresets struct {
 	MinStaffSize int          `json:"minStaffSize"`
 	MaxStaffSize int          `json:"maxStaffSize"`
 	MinDate      string       `json:"minDate"`
@@ -160,7 +160,30 @@ type CompanyFilters struct {
 	Departments  []Department `json:"departments"`
 }
 
-type ProductFilters struct {
+type ProductFilterPresets struct {
 	MinDate string `json:"minDate"`
 	MaxDate string `json:"maxDate"`
+}
+
+type Filters struct {
+	CompanyFilters CompanyFilters `json:"companyFilters"`
+	ProductFilters ProductFilters `json:"productFilters"`
+}
+
+type CompanyFilters struct {
+	CompanyName    string `json:"companyName"`
+	Departments    []int  `json:"departments"`
+	Ceo            string `json:"ceo"`
+	MinDate        string `json:"minDate"`
+	MaxDate        string `json:"maxDate"`
+	StartStaffSize int    `json:"startStaffSize"`
+	EndStaffSize   int    `json:"endStaffSize"`
+}
+
+type ProductFilters struct {
+	ProductName string `json:"productName"`
+	MinDate     string `json:"minDate"`
+	MaxDate     string `json:"maxDate"`
+	Departments []int  `json:"departments"`
+	IsVerified  bool   `json:"isVerified"`
 }
