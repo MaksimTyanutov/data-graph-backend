@@ -9,6 +9,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var CompanyIdShift = 100000
+
 type Config struct {
 	DbSettings struct {
 		DbName     string `yaml:"dbName"`

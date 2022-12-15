@@ -2,3 +2,4 @@
 *.json
 backend/config/config.yaml
 backend/build.bat
+backend/*.exe

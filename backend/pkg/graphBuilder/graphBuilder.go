@@ -3,6 +3,7 @@ package graphBuilder
 import (
 	"data-graph-backend/pkg/dataStructers"
 	"data-graph-backend/pkg/dbConnector"
+	"data-graph-backend/pkg/properties"
 	"log"
 )
 
@@ -64,22 +65,41 @@ func GetCompanies(dbConnector *dbConnector.PSQLConnector) []dataStructers.Compan
 	return companies
 }
 
-func GetLinks(projects []dataStructers.Project) []Link {
+func GetLinks(projects []dataStructers.Project, short bool) []Link {
 	links := make([]Link, 0)
 	for i := 0; i < len(projects); i++ {
 		if len(projects[i].PreviousNodeIds) != 0 {
-			for j := 0; j < len(projects[i].PreviousNodeIds); j++ {
+			if short == false {
+				for j := 0; j < len(projects[i].PreviousNodeIds); j++ {
+					links = append(links, Link{
+						Source:  projects[i].PreviousNodeIds[j],
+						Target:  projects[i].Id,
+						Color:   colors[projects[i].CompanyId%len(colors)],
+						Opacity: standartOpacity,
+					})
+				}
+			} else {
+				for j := 0; j < len(projects[i].PreviousNodeIds)-1; j++ {
+					links = append(links, Link{
+						Source:  projects[i].PreviousNodeIds[j],
+						Target:  projects[i].Id,
+						Color:   colors[projects[i].CompanyId%len(colors)],
+						Opacity: standartOpacity,
+					})
+				}
 				links = append(links, Link{
-					Source: projects[i].PreviousNodeIds[j],
-					Target: projects[i].Id,
-					Color:  colors[projects[i].CompanyId%len(colors)],
+					Source:  projects[i-1].Id,
+					Target:  projects[i].Id,
+					Color:   colors[projects[i].CompanyId%len(colors)],
+					Opacity: standartOpacity,
 				})
 			}
 		} else {
 			links = append(links, Link{
-				Source: projects[i].CompanyId + companyIdShift,
-				Target: projects[i].Id,
-				Color:  colors[projects[i].CompanyId%len(colors)],
+				Source:  projects[i].CompanyId + properties.CompanyIdShift,
+				Target:  projects[i].Id,
+				Color:   colors[projects[i].CompanyId%len(colors)],
+				Opacity: standartOpacity,
 			})
 		}
 	}
@@ -91,7 +111,7 @@ func GetGraph(dbConnector *dbConnector.PSQLConnector, minimized bool) Graph {
 	projects := GetProjects(dbConnector, minimized)
 	nodes := TransformComp(companies)
 	nodes = append(nodes, TransformProj(projects)...)
-	links := GetLinks(projects)
+	links := GetLinks(projects, minimized)
 	return Graph{
 		Nodes: nodes,
 		Links: links,

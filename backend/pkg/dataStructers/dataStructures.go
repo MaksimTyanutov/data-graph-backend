@@ -110,12 +110,80 @@ type CompanyInfo struct {
 }
 
 type ProductShort struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
-	Year string `json:"year"`
+	Id         int    `json:"id"`
+	Name       string `json:"name"`
+	Year       string `json:"year"`
+	IsVerified bool   `json:"isVerified"`
 }
 
 type Department struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+type TimelineCompany struct {
+	Company struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+		Year string `json:"year"`
+	} `json:"company"`
+	Product struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+		Year string `json:"year"`
+	} `json:"product"`
+}
+
+type TimelineProducts struct {
+	Product1 struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+		Year string `json:"year"`
+	} `json:"product-1"`
+	Product2 struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+		Year string `json:"year"`
+	} `json:"product-2"`
+}
+
+type FilterPresets struct {
+	CompanyFilters CompanyFilterPresets `json:"companyFilters"`
+	ProductFilters ProductFilterPresets `json:"productFilters"`
+}
+
+type CompanyFilterPresets struct {
+	MinStaffSize int          `json:"minStaffSize"`
+	MaxStaffSize int          `json:"maxStaffSize"`
+	MinDate      string       `json:"minDate"`
+	MaxDate      string       `json:"maxDate"`
+	Departments  []Department `json:"departments"`
+}
+
+type ProductFilterPresets struct {
+	MinDate string `json:"minDate"`
+	MaxDate string `json:"maxDate"`
+}
+
+type Filters struct {
+	CompanyFilters CompanyFilters `json:"companyFilters"`
+	ProductFilters ProductFilters `json:"productFilters"`
+}
+
+type CompanyFilters struct {
+	CompanyName    string `json:"companyName"`
+	Departments    []int  `json:"departments"`
+	Ceo            string `json:"ceo"`
+	MinDate        string `json:"minDate"`
+	MaxDate        string `json:"maxDate"`
+	StartStaffSize int    `json:"startStaffSize"`
+	EndStaffSize   int    `json:"endStaffSize"`
+}
+
+type ProductFilters struct {
+	ProductName string `json:"productName"`
+	MinDate     string `json:"minDate"`
+	MaxDate     string `json:"maxDate"`
+	Departments []int  `json:"departments"`
+	IsVerified  bool   `json:"isVerified"`
 }
