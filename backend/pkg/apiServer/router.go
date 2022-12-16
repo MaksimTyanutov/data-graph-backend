@@ -28,7 +28,8 @@ func configureRouters(r *Router) {
 	http.HandleFunc("/link/company", r.handleTimelineCompany)
 	http.HandleFunc("/departments", r.handleGetAllDepartments)
 	http.HandleFunc("/filterPresets", r.handleGetFilterPresets)
-	http.HandleFunc("/filters", r.handleFilters)
+	http.HandleFunc("/filterCompany", r.handleFilterCompany)
+	http.HandleFunc("/filterProduct", r.handleFilterProduct)
 }
 
 func (rout *Router) handleTestAnswer(rw http.ResponseWriter, r *http.Request) {
@@ -241,34 +242,69 @@ func (rout *Router) handleGetFilterPresets(rw http.ResponseWriter, r *http.Reque
 	respond(rw, r, http.StatusOK, filterPresets)
 }
 
-func (rout *Router) handleFilters(rw http.ResponseWriter, r *http.Request) {
+func (rout *Router) handleFilterCompany(rw http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		respond(rw, r, http.StatusMethodNotAllowed, nil)
 		return
 	}
 
-	var filters dataStructers.Filters
+	var companyFilters dataStructers.CompanyFilters
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Print("Filters don't work: ", err.Error())
+		log.Print("FilterCompany(1) don't work: ", err.Error())
 		respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
-	err = json.Unmarshal(data, &filters)
+	err = json.Unmarshal(data, &companyFilters)
 	if err != nil {
-		log.Print("Filters unmarshall don't work: ", err.Error())
+		log.Print("FilterCompany(2). Filters unmarshall don't work: ", err.Error())
 		respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
-	err = utils.ValidateFilter(filters)
+	err = utils.ValidateFilterCompany(companyFilters)
 	if err != nil {
 		log.Print(err.Error())
 		respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
-	idArray, err := rout.dbConnector.GetFiltersID(filters)
+	idArray, err := rout.dbConnector.GetFiltersIDCompany(companyFilters)
 	if err != nil {
 		log.Print("GetFiltersID don't work: ", err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	rout.setCorsHeaders(&rw)
+	respond(rw, r, http.StatusOK, idArray)
+}
+
+func (rout *Router) handleFilterProduct(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		respond(rw, r, http.StatusMethodNotAllowed, nil)
+		return
+	}
+
+	var productFilters dataStructers.ProductFilters
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Print("handleFilterProduct(1) don't work: ", err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	err = json.Unmarshal(data, &productFilters)
+	if err != nil {
+		log.Print("handleFilterProduct(2). Filters unmarshall don't work: ", err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	err = utils.ValidateFilterProduct(productFilters)
+	if err != nil {
+		log.Print(err.Error())
+		respond(rw, r, http.StatusBadRequest, err)
+		return
+	}
+	idArray, err := rout.dbConnector.GetFiltersIDProduct(productFilters)
+	if err != nil {
+		log.Print("handleFilterProduct(3) don't work: ", err.Error())
 		respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
