@@ -102,8 +102,9 @@ func (con *PSQLConnector) GetAllProjects() ([]Project, error) {
 	}
 	for rows.Next() {
 		p := new(Project)
+		var nullFloat sql.NullFloat64
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
 			return nil, err
 		}
 		projects = append(projects, *p)
@@ -123,8 +124,9 @@ func (con *PSQLConnector) GetShortProjects() ([]Project, error) {
 	}
 	for rows.Next() {
 		p := new(Project)
+		var nullFloat sql.NullFloat64
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
 			return nil, err
 		}
 		projects = append(projects, *p)
@@ -154,8 +156,9 @@ func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, er
 	products := make([]dataStructers.ProductShort, 0)
 	for rows.Next() {
 		p := new(Project)
+		var nullFloat sql.NullFloat64
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
 			return nil, err
 		}
 		prod := dataStructers.ProductShort{
@@ -183,8 +186,9 @@ func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, er
 func (con *PSQLConnector) GetProductInfo(id int) (*dataStructers.Product, error) {
 	command := fmt.Sprintf("SELECT * From getprojects(searchnodeid := '%d')", id)
 	p := new(Project)
+	var nullFloat sql.NullFloat64
 	if err := con.db.QueryRow(command).Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-		&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
+		&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
 		return nil, err
 	}
 	command = fmt.Sprintf("SELECT name From getcompanies(companyid := '%d')", int(p.companyId.Int32))
