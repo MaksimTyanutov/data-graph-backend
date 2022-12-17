@@ -167,7 +167,7 @@ func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, er
 		products = append(products, prod)
 	}
 	ci := &dataStructers.CompanyInfo{
-		Id:              company.Id,
+		Id:              company.Id + properties.CompanyIdShift,
 		Name:            company.Name,
 		Ceo:             company.OwnerName,
 		Description:     company.Description,

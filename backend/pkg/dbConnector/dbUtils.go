@@ -59,3 +59,12 @@ func (con *PSQLConnector) getMaxDateProduct() (string, error) {
 	}
 	return nullString.String, nil
 }
+
+func (con *PSQLConnector) GetMaxProductId() (int, error) {
+	var nullInt sql.NullInt32
+	command := fmt.Sprintf("select nodeid from getprojects() order by nodeid desc LIMIT 1")
+	if err := con.db.QueryRow(command).Scan(&nullInt); err != nil {
+		return 0, errors.New("Can't get max nodeId. Error:" + err.Error())
+	}
+	return int(nullInt.Int32), nil
+}

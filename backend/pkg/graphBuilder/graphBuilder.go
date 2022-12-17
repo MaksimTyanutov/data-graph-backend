@@ -107,6 +107,11 @@ func GetLinks(projects []dataStructers.Project, short bool) []Link {
 }
 
 func GetGraph(dbConnector *dbConnector.PSQLConnector, minimized bool) Graph {
+	maxNodeId, err := dbConnector.GetMaxProductId()
+	if err != nil {
+		log.Println("GetGraph(1): Can't get max nodeId: " + err.Error())
+	}
+	properties.CompanyIdShift = maxNodeId
 	companies := GetCompanies(dbConnector)
 	projects := GetProjects(dbConnector, minimized)
 	nodes := TransformComp(companies)

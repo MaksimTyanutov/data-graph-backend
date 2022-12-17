@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var CompanyIdShift = 100000
+var CompanyIdShift int
 
 type Config struct {
 	DbSettings struct {
