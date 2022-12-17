@@ -7,10 +7,6 @@ import (
 	"net/http"
 )
 
-const (
-	bindAddr = ":7328"
-)
-
 func Start(config *properties.Config) error {
 	dbConnection, err := dbConnector.NewConnection(config)
 	if err != nil {
@@ -23,6 +19,6 @@ func Start(config *properties.Config) error {
 
 	configureRouters(router)
 
-	log.Println("Listening on " + bindAddr)
-	return http.ListenAndServe(bindAddr, nil)
+	log.Println("Listening on " + config.ProgramSettings.Host + config.ProgramSettings.Port)
+	return http.ListenAndServe(config.ProgramSettings.Port, nil)
 }
