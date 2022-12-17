@@ -153,6 +153,8 @@ type FilterPresets struct {
 }
 
 type CompanyFilterPresets struct {
+	CompanyNames []string     `json:"companyNames"`
+	CeoNames     []string     `json:"ceoNames"`
 	MinStaffSize int          `json:"minStaffSize"`
 	MaxStaffSize int          `json:"maxStaffSize"`
 	MinDate      string       `json:"minDate"`
@@ -161,8 +163,9 @@ type CompanyFilterPresets struct {
 }
 
 type ProductFilterPresets struct {
-	MinDate string `json:"minDate"`
-	MaxDate string `json:"maxDate"`
+	ProductNames []string `json:"productNames"`
+	MinDate      string   `json:"minDate"`
+	MaxDate      string   `json:"maxDate"`
 }
 
 type Filters struct {

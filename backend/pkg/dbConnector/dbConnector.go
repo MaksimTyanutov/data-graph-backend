@@ -247,9 +247,19 @@ func (con *PSQLConnector) GetCompanyFilters() (*dataStructers.CompanyFilterPrese
 
 	departments, err := con.GetAllDepartments()
 	if err != nil {
-		return nil, errors.New("GetCompanyFilters(3): " + err.Error())
+		return nil, errors.New("GetCompanyFilters(1): " + err.Error())
 	}
 	CF.Departments = departments
+	companyNames, err := con.GetAllCompanyName()
+	if err != nil {
+		return nil, errors.New("GetCompanyFilters(2): " + err.Error())
+	}
+	CF.CompanyNames = companyNames
+	ceoNames, err := con.GetAllCeoName()
+	if err != nil {
+		return nil, errors.New("GetCompanyFilters(3): " + err.Error())
+	}
+	CF.CeoNames = ceoNames
 
 	CF.MinStaffSize, err = con.getMinEmployeeNum()
 	if err != nil {
@@ -272,6 +282,10 @@ func (con *PSQLConnector) GetCompanyFilters() (*dataStructers.CompanyFilterPrese
 }
 
 func (con *PSQLConnector) GetProductFilters() (*dataStructers.ProductFilterPresets, error) {
+	productNames, err := con.GetAllProductName()
+	if err != nil {
+		return nil, err
+	}
 	minDate, err := con.getMinDateProduct()
 	if err != nil {
 		return nil, err
@@ -281,24 +295,26 @@ func (con *PSQLConnector) GetProductFilters() (*dataStructers.ProductFilterPrese
 		return nil, err
 	}
 	PF := dataStructers.ProductFilterPresets{
-		MinDate: minDate,
-		MaxDate: maxDate,
+		ProductNames: productNames,
+		MinDate:      minDate,
+		MaxDate:      maxDate,
 	}
 	return &PF, nil
 }
 
-func (con *PSQLConnector) GetFiltersID(filters dataStructers.Filters) ([]int, error) {
+func (con *PSQLConnector) GetFiltersIDCompany(companyFilter dataStructers.CompanyFilters) ([]int, error) {
 	idArray := make([]int, 0)
+	companyID := make([]int, 0)
 	str := make([]string, 0)
-	for _, el := range filters.CompanyFilters.Departments {
+	for _, el := range companyFilter.Departments {
 		str = append(str, fmt.Sprintf("%d", el))
 	}
 	command := fmt.Sprintf("select id from getcompanies(namesearch := '%s', companytypeenums := '{%s}', ownersearch := '%s', begindate := '%s', enddate := '%s', employeescountbegin := '%d', employeescountend := '%d')",
-		filters.CompanyFilters.CompanyName, strings.Join(str, ", "), filters.CompanyFilters.Ceo, filters.CompanyFilters.MinDate, filters.CompanyFilters.MaxDate, filters.CompanyFilters.StartStaffSize, filters.CompanyFilters.EndStaffSize)
+		companyFilter.CompanyName, strings.Join(str, ", "), companyFilter.Ceo, companyFilter.MinDate, companyFilter.MaxDate, companyFilter.StartStaffSize, companyFilter.EndStaffSize)
 
 	rows, err := con.db.Query(command)
 	if err != nil {
-		return nil, errors.New("GetFiltersID(1). Can't get companies from DB: " + err.Error())
+		return nil, errors.New("GetFiltersIDCompany(1). Can't get companies from DB: " + err.Error())
 	}
 	for rows.Next() {
 		var id sql.NullInt32
@@ -306,14 +322,38 @@ func (con *PSQLConnector) GetFiltersID(filters dataStructers.Filters) ([]int, er
 			return nil, err
 		}
 		idArray = append(idArray, int(id.Int32)+properties.CompanyIdShift)
+		companyID = append(companyID, int(id.Int32))
 	}
 
+	compId := make([]string, 0)
+	for _, el := range companyID {
+		compId = append(compId, fmt.Sprintf("%d", el))
+	}
+	command = fmt.Sprintf("select nodeid from getprojects(companyids := '{%s}')", strings.Join(compId, ", "))
+	rows2, err := con.db.Query(command)
+	if err != nil {
+		return nil, errors.New("GetFiltersIDCompany(2). Can't get projects from DB: " + err.Error())
+	}
+	for rows2.Next() {
+		var id sql.NullInt32
+		if err := rows2.Scan(&id); err != nil {
+			return nil, err
+		}
+		idArray = append(idArray, int(id.Int32))
+	}
+
+	return idArray, nil
+}
+
+func (con *PSQLConnector) GetFiltersIDProduct(companyFilter dataStructers.ProductFilters) ([]int, error) {
+	idArray := make([]int, 0)
+
 	prjTypes := make([]string, 0)
-	for _, el := range filters.ProductFilters.Departments {
+	for _, el := range companyFilter.Departments {
 		prjTypes = append(prjTypes, fmt.Sprintf("%d", el))
 	}
-	command = fmt.Sprintf("select nodeid from getprojects(namesearch := '%s', begindate := '%s', enddate := '%s',  searchprojecttypes := '{%s}', hasPressURL := '%t')",
-		filters.ProductFilters.ProductName, filters.ProductFilters.MinDate, filters.ProductFilters.MaxDate, strings.Join(prjTypes, ", "), filters.ProductFilters.IsVerified)
+	command := fmt.Sprintf("select nodeid from getprojects(namesearch := '%s', begindate := '%s', enddate := '%s',  searchprojecttypes := '{%s}', hasPressURL := '%t')",
+		companyFilter.ProductName, companyFilter.MinDate, companyFilter.MaxDate, strings.Join(prjTypes, ", "), companyFilter.IsVerified)
 
 	rows2, err := con.db.Query(command)
 	if err != nil {
@@ -328,4 +368,64 @@ func (con *PSQLConnector) GetFiltersID(filters dataStructers.Filters) ([]int, er
 	}
 
 	return idArray, nil
+}
+
+func (con *PSQLConnector) GetAllCompanyName() ([]string, error) {
+	command := fmt.Sprintf("select distinct name from getcompanies()")
+	companyNames := make([]string, 0)
+	rows, err := con.db.Query(command)
+	if err != nil {
+		return nil, errors.New("GetAllCompanyName(1). Can't get execute command DB: " + err.Error())
+	}
+	for rows.Next() {
+		var nullStr sql.NullString
+		if err := rows.Scan(&nullStr); err != nil {
+			return nil, err
+		}
+		companyNames = append(companyNames, nullStr.String)
+	}
+	if err := rows.Err(); err != nil {
+		log.Println("GetAllCompanyName(2). Can't get Names company from DB: " + err.Error())
+	}
+	return companyNames, nil
+}
+
+func (con *PSQLConnector) GetAllCeoName() ([]string, error) {
+	command := fmt.Sprintf("select distinct ownername from getcompanies()")
+	ceoNames := make([]string, 0)
+	rows, err := con.db.Query(command)
+	if err != nil {
+		return nil, errors.New("GetAllCeoName(1). Can't get execute command DB: " + err.Error())
+	}
+	for rows.Next() {
+		var nullStr sql.NullString
+		if err := rows.Scan(&nullStr); err != nil {
+			return nil, err
+		}
+		ceoNames = append(ceoNames, nullStr.String)
+	}
+	if err := rows.Err(); err != nil {
+		log.Println("GetAllCeoName(2). Can't get Names from DB: " + err.Error())
+	}
+	return ceoNames, nil
+}
+
+func (con *PSQLConnector) GetAllProductName() ([]string, error) {
+	command := fmt.Sprintf("select distinct name from getprojects()")
+	productNames := make([]string, 0)
+	rows, err := con.db.Query(command)
+	if err != nil {
+		return nil, errors.New("GetAllProductName(1). Can't get execute command DB: " + err.Error())
+	}
+	for rows.Next() {
+		var nullStr sql.NullString
+		if err := rows.Scan(&nullStr); err != nil {
+			return nil, err
+		}
+		productNames = append(productNames, nullStr.String)
+	}
+	if err := rows.Err(); err != nil {
+		log.Println("GetAllProductName(2). Can't get Names from DB: " + err.Error())
+	}
+	return productNames, nil
 }
