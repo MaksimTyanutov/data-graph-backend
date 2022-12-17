@@ -83,11 +83,6 @@ func (rout *Router) handleGetGraphShort(rw http.ResponseWriter, r *http.Request)
 	respond(rw, r, http.StatusOK, graph)
 }
 
-func (rout *Router) setCorsHeaders(rw *http.ResponseWriter) {
-	(*rw).Header().Set("Access-Control-Allow-Origin", "*")
-	(*rw).Header().Set("Access-Control-Allow-Headers", "Content-Type")
-}
-
 // Get company information
 func (rout *Router) handleCompany(rw http.ResponseWriter, r *http.Request) {
 	idStr := r.FormValue("id")
@@ -243,6 +238,11 @@ func (rout *Router) handleGetFilterPresets(rw http.ResponseWriter, r *http.Reque
 }
 
 func (rout *Router) handleFilterCompany(rw http.ResponseWriter, r *http.Request) {
+	rout.setCorsHeaders(&rw)
+	if r.Method == "OPTIONS" {
+		return
+	}
+
 	if r.Method != http.MethodPost {
 		respond(rw, r, http.StatusMethodNotAllowed, nil)
 		return
@@ -278,6 +278,11 @@ func (rout *Router) handleFilterCompany(rw http.ResponseWriter, r *http.Request)
 }
 
 func (rout *Router) handleFilterProduct(rw http.ResponseWriter, r *http.Request) {
+	rout.setCorsHeaders(&rw)
+	if r.Method == "OPTIONS" {
+		return
+	}
+
 	if r.Method != http.MethodPost {
 		respond(rw, r, http.StatusMethodNotAllowed, nil)
 		return
@@ -316,15 +321,21 @@ func (rout *Router) handleFilterProduct(rw http.ResponseWriter, r *http.Request)
 //	respond(w, r, code, map[string]string{"error": err.Error()})
 //}
 
+func (rout *Router) setCorsHeaders(rw *http.ResponseWriter) {
+	(*rw).Header().Set("Access-Control-Allow-Origin", "*")
+	(*rw).Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
 func respond(w http.ResponseWriter, r *http.Request, code int, date interface{}) {
 	w.WriteHeader(code)
 
 	//Allow CORS here By * or specific origin
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
 	// return "OKOK"
 	if date != nil {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		err := json.NewEncoder(w).Encode(date)
 		if err != nil {
 			log.Print("Error while responding: " + err.Error() + ".\nRequest: " + r.URL.String())
