@@ -18,6 +18,7 @@ type Router struct {
 
 func configureRouters(r *Router) {
 	http.HandleFunc("/test", r.handleTestAnswer)
+	http.HandleFunc("/ping", r.handlePing)
 	//http.HandleFunc("/Companies", r.handleCompanies)
 	//http.HandleFunc("/Projects", r.handleProjects)
 	http.HandleFunc("/get:full", r.handleGetGraphFull)
@@ -35,6 +36,11 @@ func configureRouters(r *Router) {
 func (rout *Router) handleTestAnswer(rw http.ResponseWriter, r *http.Request) {
 	rout.setCorsHeaders(&rw)
 	respond(rw, r, http.StatusOK, "test")
+}
+
+func (rout *Router) handlePing(rw http.ResponseWriter, r *http.Request) {
+	rout.setCorsHeaders(&rw)
+	respond(rw, r, http.StatusOK, "OK")
 }
 
 // GET ALL PROJECTS

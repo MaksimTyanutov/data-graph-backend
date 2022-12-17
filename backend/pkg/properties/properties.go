@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"log"
 	"os"
 
 	"gopkg.in/yaml.v3"
 )
 
-var CompanyIdShift = 100000
+var CompanyIdShift int
 
 type Config struct {
 	DbSettings struct {
@@ -20,16 +21,23 @@ type Config struct {
 		DbPassword string `yaml:"dbPassword"`
 	} `yaml:"DBSettings"`
 	ProgramSettings struct {
+		Host string `yaml:"host"`
+		Port string `yaml:"port"`
 	} `yaml:"ProgramSettings"`
 }
 
 func GetConfig(path string) *Config {
-	file, err := os.Open(path + "/config/config.yaml")
+	file, err := os.Open(path)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Panicln("Something wrong with config: " + err.Error())
+		}
+	}(file)
 
 	reader := bufio.NewReader(file)
 	data, err := io.ReadAll(reader)
