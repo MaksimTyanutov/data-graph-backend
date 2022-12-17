@@ -21,8 +21,9 @@ type Config struct {
 		DbPassword string `yaml:"dbPassword"`
 	} `yaml:"DBSettings"`
 	ProgramSettings struct {
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
+		Host    string `yaml:"host"`
+		Port    string `yaml:"port"`
+		LogPath string `yaml:"logPath"`
 	} `yaml:"ProgramSettings"`
 }
 
@@ -35,7 +36,7 @@ func GetConfig(path string) *Config {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			log.Panicln("Something wrong with config: " + err.Error())
+			log.Panic("Something wrong with config: " + err.Error())
 		}
 	}(file)
 

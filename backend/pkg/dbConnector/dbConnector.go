@@ -196,7 +196,10 @@ func (con *PSQLConnector) GetProductInfo(id int) (*dataStructers.Product, error)
 	if err := con.db.QueryRow(command).Scan(&companyName); err != nil {
 		return nil, err
 	}
-	product := p.Transform()
+	product, err := p.Transform()
+	if err != nil {
+		return nil, errors.New("graphBuilder:GetProjects(2). Can't transform project. " + err.Error())
+	}
 	departments := make([]dataStructers.Department, 0)
 	for i := 0; i < len(product.ProjectTypes); i++ {
 		dep := dataStructers.Department{
@@ -241,7 +244,7 @@ func (con *PSQLConnector) GetAllDepartments() ([]dataStructers.Department, error
 		departments = append(departments, department)
 	}
 	if err := rows.Err(); err != nil {
-		log.Println("GetAllDepartments(2). Can't get departments from DB: " + err.Error())
+		return nil, errors.New("GetAllDepartments(2). Can't get departments from DB: " + err.Error())
 	}
 	return departments, nil
 }
@@ -389,7 +392,7 @@ func (con *PSQLConnector) GetAllCompanyName() ([]string, error) {
 		companyNames = append(companyNames, nullStr.String)
 	}
 	if err := rows.Err(); err != nil {
-		log.Println("GetAllCompanyName(2). Can't get Names company from DB: " + err.Error())
+		return nil, errors.New("GetAllCompanyName(2). Can't get Names company from DB: " + err.Error())
 	}
 	return companyNames, nil
 }
@@ -409,7 +412,7 @@ func (con *PSQLConnector) GetAllCeoName() ([]string, error) {
 		ceoNames = append(ceoNames, nullStr.String)
 	}
 	if err := rows.Err(); err != nil {
-		log.Println("GetAllCeoName(2). Can't get Names from DB: " + err.Error())
+		return nil, errors.New("GetAllCeoName(2). Can't get Names from DB: " + err.Error())
 	}
 	return ceoNames, nil
 }
@@ -429,7 +432,7 @@ func (con *PSQLConnector) GetAllProductName() ([]string, error) {
 		productNames = append(productNames, nullStr.String)
 	}
 	if err := rows.Err(); err != nil {
-		log.Println("GetAllProductName(2). Can't get Names from DB: " + err.Error())
+		return nil, errors.New("GetAllProductName(2). Can't get Names from DB: " + err.Error())
 	}
 	return productNames, nil
 }
