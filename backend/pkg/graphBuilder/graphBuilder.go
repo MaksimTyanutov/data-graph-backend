@@ -113,11 +113,10 @@ func GetLinks(projects []dataStructers.Project, short bool) []Link {
 }
 
 func GetGraph(dbConnector *dbConnector.PSQLConnector, minimized bool) (*Graph, error) {
-	maxNodeId, err := dbConnector.GetMaxProductId()
+	err := dbConnector.SetIdShift()
 	if err != nil {
-		return nil, errors.New("GetGraph(1): Can't get max nodeId: " + err.Error())
+		return nil, err
 	}
-	properties.CompanyIdShift = maxNodeId
 	companies, err := GetCompanies(dbConnector)
 	if err != nil {
 		return nil, errors.New("GetGraph(2): " + err.Error())

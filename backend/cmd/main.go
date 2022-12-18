@@ -20,7 +20,7 @@ func main() {
 	logger := logging.GetLogger()
 	logger.Info("Starting backend for DataGraph")
 
-	if err := apiServer.Start(config); err != nil {
+	if err := apiServer.Start(config, logger); err != nil {
 		logger.Fatal(err)
 	}
 
