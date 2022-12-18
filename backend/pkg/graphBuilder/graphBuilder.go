@@ -4,7 +4,7 @@ import (
 	"data-graph-backend/pkg/dataStructers"
 	"data-graph-backend/pkg/dbConnector"
 	"data-graph-backend/pkg/properties"
-	"log"
+	"errors"
 )
 
 var colors = []string{
@@ -24,45 +24,51 @@ var colors = []string{
 }
 
 // GET ALL PROJECTS
-func GetProjects(dbConnector *dbConnector.PSQLConnector, minimized bool) []dataStructers.Project {
+func GetProjects(dbConnector *dbConnector.PSQLConnector, minimized bool) ([]dataStructers.Project, error) {
 	projects := make([]dataStructers.Project, 0)
 	if !minimized {
 		projectsDb, err := dbConnector.GetAllProjects()
 		if err != nil {
-			log.Print("graphBuilder:GetProjects(1). GetAllProjects don't work: ", err.Error())
+			return nil, errors.New("graphBuilder:GetProjects(1). GetAllProjects don't work: " + err.Error())
 		} else {
 			for i := 0; i < len(projectsDb); i++ {
-				project := projectsDb[i].Transform()
-				projects = append(projects, project)
+				project, err := projectsDb[i].Transform()
+				if err != nil {
+					return nil, errors.New("graphBuilder:GetProjects(2). Can't transform project. " + err.Error())
+				}
+				projects = append(projects, *project)
 			}
 		}
 	} else {
 		projectsDb, err := dbConnector.GetShortProjects()
 		if err != nil {
-			log.Print("graphBuilder:GetProjects(2). GetShortProjects don't work: ", err.Error())
+			return nil, errors.New("graphBuilder:GetProjects(2). GetShortProjects don't work: " + err.Error())
 		} else {
 			for i := 0; i < len(projectsDb); i++ {
-				project := projectsDb[i].Transform()
-				projects = append(projects, project)
+				project, err := projectsDb[i].Transform()
+				if err != nil {
+					return nil, errors.New("graphBuilder:GetProjects(2). Can't transform project. " + err.Error())
+				}
+				projects = append(projects, *project)
 			}
 		}
 	}
-	return projects
+	return projects, nil
 }
 
 // GET ALL COMPANIES
-func GetCompanies(dbConnector *dbConnector.PSQLConnector) []dataStructers.Company {
+func GetCompanies(dbConnector *dbConnector.PSQLConnector) ([]dataStructers.Company, error) {
 	companiesDb, err := dbConnector.GetAllCompanies()
 	companies := make([]dataStructers.Company, 0)
 	if err != nil {
-		log.Print("graphBuilder:GetCompanies. GetAllCompanies don't work: ", err.Error())
+		return nil, errors.New("graphBuilder:GetCompanies. GetAllCompanies don't work: " + err.Error())
 	} else {
 		for i := 0; i < len(companiesDb); i++ {
 			company := companiesDb[i].Transform()
 			companies = append(companies, company)
 		}
 	}
-	return companies
+	return companies, nil
 }
 
 func GetLinks(projects []dataStructers.Project, short bool) []Link {
@@ -106,19 +112,25 @@ func GetLinks(projects []dataStructers.Project, short bool) []Link {
 	return links
 }
 
-func GetGraph(dbConnector *dbConnector.PSQLConnector, minimized bool) Graph {
+func GetGraph(dbConnector *dbConnector.PSQLConnector, minimized bool) (*Graph, error) {
 	maxNodeId, err := dbConnector.GetMaxProductId()
 	if err != nil {
-		log.Println("GetGraph(1): Can't get max nodeId: " + err.Error())
+		return nil, errors.New("GetGraph(1): Can't get max nodeId: " + err.Error())
 	}
 	properties.CompanyIdShift = maxNodeId
-	companies := GetCompanies(dbConnector)
-	projects := GetProjects(dbConnector, minimized)
+	companies, err := GetCompanies(dbConnector)
+	if err != nil {
+		return nil, errors.New("GetGraph(2): " + err.Error())
+	}
+	projects, err := GetProjects(dbConnector, minimized)
+	if err != nil {
+		return nil, errors.New("GetGraph(3): " + err.Error())
+	}
 	nodes := TransformComp(companies)
 	nodes = append(nodes, TransformProj(projects)...)
 	links := GetLinks(projects, minimized)
-	return Graph{
+	return &Graph{
 		Nodes: nodes,
 		Links: links,
-	}
+	}, nil
 }

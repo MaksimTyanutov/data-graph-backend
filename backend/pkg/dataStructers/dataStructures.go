@@ -1,10 +1,5 @@
 package dataStructers
 
-import (
-	"encoding/json"
-	"log"
-)
-
 type Company struct {
 	Id              int
 	Name            string
@@ -15,14 +10,6 @@ type Company struct {
 	OwnerName       string
 	Address         string
 	IconPath        string
-}
-
-func (c *Company) JSON() string {
-	marshal, err := json.Marshal(c)
-	if err != nil {
-		log.Fatal("Error while marshalling: " + err.Error())
-	}
-	return string(marshal)
 }
 
 func (c *Company) SetId(id int) {
@@ -73,14 +60,6 @@ type Project struct {
 	Url             string
 	PreviousNodeIds []int
 	PressURL        string
-}
-
-func (p *Project) JSON() string {
-	marshal, err := json.Marshal(p)
-	if err != nil {
-		log.Fatal("Error while marshalling: " + err.Error())
-	}
-	return string(marshal)
 }
 
 type Product struct {

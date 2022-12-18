@@ -3,8 +3,8 @@ package dbConnector
 import (
 	"data-graph-backend/pkg/dataStructers"
 	"database/sql"
+	"errors"
 	_ "github.com/lib/pq"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -71,7 +71,7 @@ func (p *Project) GetName() string {
 	return p.name.String
 }
 
-func (p *Project) Transform() dataStructers.Project {
+func (p *Project) Transform() (*dataStructers.Project, error) {
 	p_ := dataStructers.Project{}
 	p_.Id = int(p.nodeId.Int32)
 	p_.ProjectId = int(p.projectId.Int32)
@@ -101,13 +101,12 @@ func (p *Project) Transform() dataStructers.Project {
 	for i := 0; i < len(str); i++ {
 		num, err := strconv.Atoi(str[i])
 		if err != nil {
-			log.Print("Not number: " + str[i] + "\nERROR: " + err.Error())
-			continue
+			return nil, errors.New("Not number: " + str[i] + "\nERROR: " + err.Error())
 		}
 		lastNodes = append(lastNodes, num)
 	}
 	p_.PreviousNodeIds = lastNodes
-	return p_
+	return &p_, nil
 }
 
 type Department struct {

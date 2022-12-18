@@ -102,8 +102,9 @@ func (con *PSQLConnector) GetAllProjects() ([]Project, error) {
 	}
 	for rows.Next() {
 		p := new(Project)
+		var nullFloat sql.NullFloat64
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
 			return nil, err
 		}
 		projects = append(projects, *p)
@@ -123,8 +124,9 @@ func (con *PSQLConnector) GetShortProjects() ([]Project, error) {
 	}
 	for rows.Next() {
 		p := new(Project)
+		var nullFloat sql.NullFloat64
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
 			return nil, err
 		}
 		projects = append(projects, *p)
@@ -154,8 +156,9 @@ func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, er
 	products := make([]dataStructers.ProductShort, 0)
 	for rows.Next() {
 		p := new(Project)
+		var nullFloat sql.NullFloat64
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
 			return nil, err
 		}
 		prod := dataStructers.ProductShort{
@@ -183,8 +186,9 @@ func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, er
 func (con *PSQLConnector) GetProductInfo(id int) (*dataStructers.Product, error) {
 	command := fmt.Sprintf("SELECT * From getprojects(searchnodeid := '%d')", id)
 	p := new(Project)
+	var nullFloat sql.NullFloat64
 	if err := con.db.QueryRow(command).Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-		&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL); err != nil {
+		&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
 		return nil, err
 	}
 	command = fmt.Sprintf("SELECT name From getcompanies(companyid := '%d')", int(p.companyId.Int32))
@@ -192,7 +196,10 @@ func (con *PSQLConnector) GetProductInfo(id int) (*dataStructers.Product, error)
 	if err := con.db.QueryRow(command).Scan(&companyName); err != nil {
 		return nil, err
 	}
-	product := p.Transform()
+	product, err := p.Transform()
+	if err != nil {
+		return nil, errors.New("graphBuilder:GetProjects(2). Can't transform project. " + err.Error())
+	}
 	departments := make([]dataStructers.Department, 0)
 	for i := 0; i < len(product.ProjectTypes); i++ {
 		dep := dataStructers.Department{
@@ -237,7 +244,7 @@ func (con *PSQLConnector) GetAllDepartments() ([]dataStructers.Department, error
 		departments = append(departments, department)
 	}
 	if err := rows.Err(); err != nil {
-		log.Println("GetAllDepartments(2). Can't get departments from DB: " + err.Error())
+		return nil, errors.New("GetAllDepartments(2). Can't get departments from DB: " + err.Error())
 	}
 	return departments, nil
 }
@@ -385,7 +392,7 @@ func (con *PSQLConnector) GetAllCompanyName() ([]string, error) {
 		companyNames = append(companyNames, nullStr.String)
 	}
 	if err := rows.Err(); err != nil {
-		log.Println("GetAllCompanyName(2). Can't get Names company from DB: " + err.Error())
+		return nil, errors.New("GetAllCompanyName(2). Can't get Names company from DB: " + err.Error())
 	}
 	return companyNames, nil
 }
@@ -405,7 +412,7 @@ func (con *PSQLConnector) GetAllCeoName() ([]string, error) {
 		ceoNames = append(ceoNames, nullStr.String)
 	}
 	if err := rows.Err(); err != nil {
-		log.Println("GetAllCeoName(2). Can't get Names from DB: " + err.Error())
+		return nil, errors.New("GetAllCeoName(2). Can't get Names from DB: " + err.Error())
 	}
 	return ceoNames, nil
 }
@@ -425,7 +432,7 @@ func (con *PSQLConnector) GetAllProductName() ([]string, error) {
 		productNames = append(productNames, nullStr.String)
 	}
 	if err := rows.Err(); err != nil {
-		log.Println("GetAllProductName(2). Can't get Names from DB: " + err.Error())
+		return nil, errors.New("GetAllProductName(2). Can't get Names from DB: " + err.Error())
 	}
 	return productNames, nil
 }
