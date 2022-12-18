@@ -92,11 +92,13 @@ func (rout *Router) handleGetGraphFull(rw http.ResponseWriter, r *http.Request) 
 // GET GRAPH SHORT
 func (rout *Router) handleGetGraphShort(rw http.ResponseWriter, r *http.Request) {
 	graph, err := graphBuilder.GetGraph(rout.dbConnector, true)
+	rout.logger.Info("Sending short graph")
 	if err != nil {
 		rout.logger.Error("GetGraphShort don't work: ", err.Error())
 	}
 	rout.setCorsHeaders(&rw)
 	rout.respond(rw, r, http.StatusOK, graph)
+	rout.logger.Info("Successful short graph")
 }
 
 // Get company information

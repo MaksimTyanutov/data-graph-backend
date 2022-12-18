@@ -1,6 +1,7 @@
 package dbConnector
 
 import (
+	"data-graph-backend/pkg/properties"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -67,4 +68,13 @@ func (con *PSQLConnector) GetMaxProductId() (int, error) {
 		return 0, errors.New("Can't get max nodeId. Error:" + err.Error())
 	}
 	return int(nullInt.Int32), nil
+}
+
+func (con *PSQLConnector) SetIdShift() error {
+	maxNodeId, err := con.GetMaxProductId()
+	if err != nil {
+		return errors.New("GetGraph(1): Can't get max nodeId: " + err.Error())
+	}
+	properties.CompanyIdShift = maxNodeId
+	return nil
 }

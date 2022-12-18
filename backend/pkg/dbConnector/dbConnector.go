@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"log"
 	"strings"
 
@@ -34,16 +35,18 @@ func newDB(config *properties.Config) (*sql.DB, error) {
 }
 
 type PSQLConnector struct {
-	db *sql.DB
+	logger *logrus.Logger
+	db     *sql.DB
 }
 
-func NewConnection(config *properties.Config) (*PSQLConnector, error) {
+func NewConnection(config *properties.Config, logger *logrus.Logger) (*PSQLConnector, error) {
 	db_, err := newDB(config)
 	if err != nil {
 		return nil, err
 	}
 	return &PSQLConnector{
-		db: db_,
+		db:     db_,
+		logger: logger,
 	}, nil
 }
 
@@ -319,7 +322,7 @@ func (con *PSQLConnector) GetFiltersIDCompany(companyFilter dataStructers.Compan
 	command := fmt.Sprintf("select id from getcompanies(namesearch := '%s', companytypeenums := '{%s}', ownersearch := '%s', begindate := '%s', enddate := '%s', employeescountbegin := '%d', employeescountend := '%d')",
 		companyFilter.CompanyName, strings.Join(str, ", "), companyFilter.Ceo, companyFilter.MinDate, companyFilter.MaxDate, companyFilter.StartStaffSize, companyFilter.EndStaffSize)
 
-	log.Println(command)
+	con.logger.Info("Executing sql query: " + command)
 	rows, err := con.db.Query(command)
 	if err != nil {
 		return nil, errors.New("GetFiltersIDCompany(1). Can't get companies from DB: " + err.Error())
@@ -340,6 +343,7 @@ func (con *PSQLConnector) GetFiltersIDCompany(companyFilter dataStructers.Compan
 	for _, el := range companyID {
 		compId = append(compId, fmt.Sprintf("%d", el))
 	}
+	con.logger.Info("Executing sql query: " + command)
 	command = fmt.Sprintf("select nodeid from getprojects(companyids := '{%s}')", strings.Join(compId, ", "))
 	rows2, err := con.db.Query(command)
 	if err != nil {
@@ -365,7 +369,7 @@ func (con *PSQLConnector) GetFiltersIDProduct(companyFilter dataStructers.Produc
 	}
 	command := fmt.Sprintf("select nodeid from getprojects(namesearch := '%s', begindate := '%s', enddate := '%s',  searchprojecttypes := '{%s}', hasPressURL := '%t')",
 		companyFilter.ProductName, companyFilter.MinDate, companyFilter.MaxDate, strings.Join(prjTypes, ", "), companyFilter.IsVerified)
-
+	con.logger.Info("Executing sql query: " + command)
 	rows2, err := con.db.Query(command)
 	if err != nil {
 		return nil, errors.New("GetFiltersID(2). Can't get projects from DB: " + err.Error())
