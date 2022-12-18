@@ -319,6 +319,7 @@ func (con *PSQLConnector) GetFiltersIDCompany(companyFilter dataStructers.Compan
 	command := fmt.Sprintf("select id from getcompanies(namesearch := '%s', companytypeenums := '{%s}', ownersearch := '%s', begindate := '%s', enddate := '%s', employeescountbegin := '%d', employeescountend := '%d')",
 		companyFilter.CompanyName, strings.Join(str, ", "), companyFilter.Ceo, companyFilter.MinDate, companyFilter.MaxDate, companyFilter.StartStaffSize, companyFilter.EndStaffSize)
 
+	log.Println(command)
 	rows, err := con.db.Query(command)
 	if err != nil {
 		return nil, errors.New("GetFiltersIDCompany(1). Can't get companies from DB: " + err.Error())
@@ -332,6 +333,9 @@ func (con *PSQLConnector) GetFiltersIDCompany(companyFilter dataStructers.Compan
 		companyID = append(companyID, int(id.Int32))
 	}
 
+	if len(companyID) == 0 {
+		return idArray, nil
+	}
 	compId := make([]string, 0)
 	for _, el := range companyID {
 		compId = append(compId, fmt.Sprintf("%d", el))
