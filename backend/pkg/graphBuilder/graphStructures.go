@@ -10,11 +10,13 @@ var sizeProduct = 600
 var standardOpacity float32 = 1.0
 
 type Node struct {
+	Name     string  `json:"name"`
 	Id       int     `json:"id"`
 	Svg      string  `json:"svg"`
 	NodeType string  `json:"nodeType"`
 	Size     int     `json:"size"`
 	Opacity  float32 `json:"opacity"`
+	Color    string  `json:"color"`
 	X        int     `json:"x"`
 	Y        int     `json:"y"`
 }
@@ -30,11 +32,13 @@ func TransformComp(companies []dataStructers.Company) []Node {
 	nodes := make([]Node, 0)
 	for i := 0; i < len(companies); i++ {
 		node := Node{
+			Name:     companies[i].Name,
 			Id:       companies[i].Id + properties.CompanyIdShift,
 			Svg:      companies[i].IconPath,
 			NodeType: "Компания",
 			Size:     sizeCompany,
 			Opacity:  standardOpacity,
+			Color:    colors[companies[i].Id%len(colors)],
 			X:        companies[i].PosX,
 			Y:        companies[i].PosY,
 		}

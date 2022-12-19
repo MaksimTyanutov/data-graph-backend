@@ -110,12 +110,12 @@ type TimelineCompany struct {
 		Id   int    `json:"id"`
 		Name string `json:"name"`
 		Year string `json:"year"`
-	} `json:"company"`
+	} `json:"source"`
 	Product struct {
 		Id   int    `json:"id"`
 		Name string `json:"name"`
 		Year string `json:"year"`
-	} `json:"product"`
+	} `json:"target"`
 }
 
 type TimelineProducts struct {
@@ -123,12 +123,12 @@ type TimelineProducts struct {
 		Id   int    `json:"id"`
 		Name string `json:"name"`
 		Year string `json:"year"`
-	} `json:"product-1"`
+	} `json:"source"`
 	Product2 struct {
 		Id   int    `json:"id"`
 		Name string `json:"name"`
 		Year string `json:"year"`
-	} `json:"product-2"`
+	} `json:"target"`
 }
 
 type FilterPresets struct {
