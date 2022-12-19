@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"log"
+	"strconv"
 	"strings"
 
 	_ "github.com/lib/pq"
@@ -79,7 +80,7 @@ func (con *PSQLConnector) GetAllCompanies() ([]Company, error) {
 		c := new(Company)
 		if err := rows.Scan(&c.id, &c.name, &c.namesimilarity, &c.description, &c.descsimilarity,
 			&c.employeeNum, &c.foundationyear, &c.companytypeenum, &c.companytypename, &c.ownerid, &c.ownername,
-			&c.ownernamessimilarity, &c.address, &c.iconpath); err != nil {
+			&c.ownernamessimilarity, &c.address, &c.iconpath, &c.posX, &c.posY); err != nil {
 			return nil, errors.New("Can't read company info: " + err.Error())
 		}
 		companies = append(companies, *c)
@@ -107,7 +108,7 @@ func (con *PSQLConnector) GetAllProjects() ([]Project, error) {
 		p := new(Project)
 		var nullFloat sql.NullFloat64
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat, &p.posX, &p.posY); err != nil {
 			return nil, err
 		}
 		projects = append(projects, *p)
@@ -129,7 +130,7 @@ func (con *PSQLConnector) GetShortProjects() ([]Project, error) {
 		p := new(Project)
 		var nullFloat sql.NullFloat64
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat, &p.posX, &p.posY); err != nil {
 			return nil, err
 		}
 		projects = append(projects, *p)
@@ -143,11 +144,14 @@ func (con *PSQLConnector) GetShortProjects() ([]Project, error) {
 // Get info for company
 func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, error) {
 	id = id - properties.CompanyIdShift
+	if id < 1 {
+		return nil, errors.New("Id company < 1: " + strconv.Itoa(id))
+	}
 	command := fmt.Sprintf("SELECT * From getcompanies(companyid := '%d')", id)
 	c := new(Company)
 	if err := con.db.QueryRow(command).Scan(&c.id, &c.name, &c.namesimilarity, &c.description, &c.descsimilarity,
 		&c.employeeNum, &c.foundationyear, &c.companytypeenum, &c.companytypename, &c.ownerid, &c.ownername,
-		&c.ownernamessimilarity, &c.address, &c.iconpath); err != nil {
+		&c.ownernamessimilarity, &c.address, &c.iconpath, &c.posX, &c.posY); err != nil {
 		return nil, errors.New("Can't execute command: " + command + ". Error:" + err.Error())
 	}
 	company := c.Transform()
@@ -161,7 +165,7 @@ func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, er
 		p := new(Project)
 		var nullFloat sql.NullFloat64
 		if err := rows.Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
+			&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat, &p.posX, &p.posY); err != nil {
 			return nil, err
 		}
 		prod := dataStructers.ProductShort{
@@ -191,7 +195,7 @@ func (con *PSQLConnector) GetProductInfo(id int) (*dataStructers.Product, error)
 	p := new(Project)
 	var nullFloat sql.NullFloat64
 	if err := con.db.QueryRow(command).Scan(&p.nodeId, &p.projectId, &p.name, &p.nameSimilarity, &p.description, &p.version,
-		&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat); err != nil {
+		&p.companyId, &p.projectTypesId, &p.projectTypesNames, &p.date, &p.url, &p.previousVersions, &p.pressURL, &nullFloat, &p.posX, &p.posY); err != nil {
 		return nil, err
 	}
 	command = fmt.Sprintf("SELECT name From getcompanies(companyid := '%d')", int(p.companyId.Int32))
