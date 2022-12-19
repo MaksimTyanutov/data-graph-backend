@@ -90,6 +90,7 @@ type CompanyInfo struct {
 	FoundationYear  string         `json:"year"`
 	CompanyTypeName []string       `json:"departments"`
 	Products        []ProductShort `json:"products"`
+	Svg             string         `json:"svg"`
 }
 
 type ProductShort struct {
