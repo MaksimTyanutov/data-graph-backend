@@ -10,6 +10,8 @@ type Company struct {
 	OwnerName       string
 	Address         string
 	IconPath        string
+	PosX            int
+	PosY            int
 }
 
 func (c *Company) SetId(id int) {
@@ -60,6 +62,8 @@ type Project struct {
 	Url             string
 	PreviousNodeIds []int
 	PressURL        string
+	PosX            int
+	PosY            int
 }
 
 type Product struct {

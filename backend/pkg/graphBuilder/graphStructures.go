@@ -7,7 +7,7 @@ import (
 
 var sizeCompany = 900
 var sizeProduct = 600
-var standartOpacity float32 = 1.0
+var standardOpacity float32 = 1.0
 
 type Node struct {
 	Id       int     `json:"id"`
@@ -15,6 +15,8 @@ type Node struct {
 	NodeType string  `json:"nodeType"`
 	Size     int     `json:"size"`
 	Opacity  float32 `json:"opacity"`
+	X        int     `json:"x"`
+	Y        int     `json:"y"`
 }
 
 type Link struct {
@@ -32,7 +34,9 @@ func TransformComp(companies []dataStructers.Company) []Node {
 			Svg:      companies[i].IconPath,
 			NodeType: "Компания",
 			Size:     sizeCompany,
-			Opacity:  standartOpacity,
+			Opacity:  standardOpacity,
+			X:        companies[i].PosX,
+			Y:        companies[i].PosY,
 		}
 		nodes = append(nodes, node)
 	}
@@ -47,7 +51,9 @@ func TransformProj(projects []dataStructers.Project) []Node {
 			Svg:      "",
 			NodeType: "Продукт",
 			Size:     sizeProduct,
-			Opacity:  standartOpacity,
+			Opacity:  standardOpacity,
+			X:        projects[i].PosX,
+			Y:        projects[i].PosY,
 		}
 		nodes = append(nodes, node)
 	}

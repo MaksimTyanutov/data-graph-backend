@@ -81,7 +81,7 @@ func GetLinks(projects []dataStructers.Project, short bool) []Link {
 						Source:  projects[i].PreviousNodeIds[j],
 						Target:  projects[i].Id,
 						Color:   colors[projects[i].CompanyId%len(colors)],
-						Opacity: standartOpacity,
+						Opacity: standardOpacity,
 					})
 				}
 			} else {
@@ -90,14 +90,14 @@ func GetLinks(projects []dataStructers.Project, short bool) []Link {
 						Source:  projects[i].PreviousNodeIds[j],
 						Target:  projects[i].Id,
 						Color:   colors[projects[i].CompanyId%len(colors)],
-						Opacity: standartOpacity,
+						Opacity: standardOpacity,
 					})
 				}
 				links = append(links, Link{
 					Source:  projects[i-1].Id,
 					Target:  projects[i].Id,
 					Color:   colors[projects[i].CompanyId%len(colors)],
-					Opacity: standartOpacity,
+					Opacity: standardOpacity,
 				})
 			}
 		} else {
@@ -105,7 +105,7 @@ func GetLinks(projects []dataStructers.Project, short bool) []Link {
 				Source:  projects[i].CompanyId + properties.CompanyIdShift,
 				Target:  projects[i].Id,
 				Color:   colors[projects[i].CompanyId%len(colors)],
-				Opacity: standartOpacity,
+				Opacity: standardOpacity,
 			})
 		}
 	}
@@ -126,7 +126,8 @@ func GetGraph(dbConnector *dbConnector.PSQLConnector, minimized bool) (*Graph, e
 		return nil, errors.New("GetGraph(3): " + err.Error())
 	}
 	nodes := TransformComp(companies)
-	nodes = append(nodes, TransformProj(projects)...)
+	projectsTransformed := TransformProj(projects)
+	nodes = append(nodes, projectsTransformed...)
 	links := GetLinks(projects, minimized)
 	return &Graph{
 		Nodes: nodes,

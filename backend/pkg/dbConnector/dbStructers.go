@@ -24,6 +24,8 @@ type Company struct {
 	ownernamessimilarity sql.NullInt32
 	address              sql.NullString
 	iconpath             sql.NullString
+	posX                 sql.NullInt32
+	posY                 sql.NullInt32
 }
 
 func (c *Company) Transform() dataStructers.Company {
@@ -44,6 +46,8 @@ func (c *Company) Transform() dataStructers.Company {
 	c_.SetFoundationYear(c.foundationyear.String)
 	c_.SetIconPath(c.iconpath.String)
 	c_.SetOwnerName(c.ownername.String)
+	c_.PosX = int(c.posX.Int32)
+	c_.PosY = int(c.posY.Int32)
 	return c_
 }
 
@@ -65,6 +69,8 @@ type Project struct {
 	url               sql.NullString
 	previousVersions  sql.NullString
 	pressURL          sql.NullString
+	posX              sql.NullInt32
+	posY              sql.NullInt32
 }
 
 func (p *Project) GetName() string {
@@ -106,6 +112,8 @@ func (p *Project) Transform() (*dataStructers.Project, error) {
 		lastNodes = append(lastNodes, num)
 	}
 	p_.PreviousNodeIds = lastNodes
+	p_.PosX = int(p.posX.Int32)
+	p_.PosY = int(p.posY.Int32)
 	return &p_, nil
 }
 
