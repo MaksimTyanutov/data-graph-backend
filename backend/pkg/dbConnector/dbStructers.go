@@ -2,6 +2,7 @@ package dbConnector
 
 import (
 	"data-graph-backend/pkg/dataStructers"
+	"data-graph-backend/pkg/utils"
 	"database/sql"
 	"errors"
 	_ "github.com/lib/pq"
@@ -35,13 +36,13 @@ func (c *Company) Transform() dataStructers.Company {
 	c_.SetDescription(c.description.String)
 	c_.SetEmployeeNum(int(c.employeeNum.Int32))
 	str_ := c.companytypename.String
-	str_ = strings.ReplaceAll(str_, ",", " ")
-	str_ = strings.ReplaceAll(str_, "{", " ")
-	str_ = strings.ReplaceAll(str_, "}", " ")
-	str_ = strings.ReplaceAll(str_, "\n", " ")
+	str_ = strings.ReplaceAll(str_, ",", "\t")
+	str_ = strings.ReplaceAll(str_, "{", "\t")
+	str_ = strings.ReplaceAll(str_, "}", "\t")
+	str_ = strings.ReplaceAll(str_, "\n", "\t")
 	str_ = strings.ReplaceAll(str_, "\"", "")
-	str := strings.Fields(str_)
-	c_.SetCompanyTypeName(str)
+	str := strings.Split(str_, "\t")
+	c_.SetCompanyTypeName(utils.DeleteEmpty(str))
 	c_.SetAddress(c.address.String)
 	c_.SetFoundationYear(c.foundationyear.String)
 	c_.SetIconPath(c.iconpath.String)
@@ -87,13 +88,13 @@ func (p *Project) Transform() (*dataStructers.Project, error) {
 	p_.Date = p.date.String
 	p_.CompanyId = int(p.companyId.Int32)
 	str_ := p.projectTypesNames.String
-	str_ = strings.ReplaceAll(str_, ",", " ")
-	str_ = strings.ReplaceAll(str_, "{", " ")
-	str_ = strings.ReplaceAll(str_, "}", " ")
-	str_ = strings.ReplaceAll(str_, "\n", " ")
+	str_ = strings.ReplaceAll(str_, ",", "\t")
+	str_ = strings.ReplaceAll(str_, "{", "\t")
+	str_ = strings.ReplaceAll(str_, "}", "\t")
+	str_ = strings.ReplaceAll(str_, "\n", "\t")
 	str_ = strings.ReplaceAll(str_, "\"", "")
-	str := strings.Fields(str_)
-	p_.ProjectTypes = str
+	str := strings.Split(str_, "\t")
+	p_.ProjectTypes = utils.DeleteEmpty(str)
 	p_.Url = p.url.String
 	p_.PressURL = p.pressURL.String
 	str_ = p.previousVersions.String

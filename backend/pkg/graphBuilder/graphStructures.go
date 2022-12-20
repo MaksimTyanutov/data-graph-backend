@@ -51,11 +51,13 @@ func TransformProj(projects []dataStructers.Project) []Node {
 	nodes := make([]Node, 0)
 	for i := 0; i < len(projects); i++ {
 		node := Node{
+			Name:     projects[i].Name,
 			Id:       projects[i].Id,
-			Svg:      "",
+			Svg:      projects[i].Url,
 			NodeType: "Продукт",
 			Size:     sizeProduct,
 			Opacity:  standardOpacity,
+			Color:    colors[projects[i].CompanyId%len(colors)],
 			X:        projects[i].PosX,
 			Y:        projects[i].PosY,
 		}
