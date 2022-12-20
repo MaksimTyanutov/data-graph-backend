@@ -185,6 +185,7 @@ func (con *PSQLConnector) GetCompanyInfo(id int) (*dataStructers.CompanyInfo, er
 		FoundationYear:  company.FoundationYear,
 		CompanyTypeName: company.CompanyTypeName,
 		Products:        products,
+		Svg:             company.IconPath,
 	}
 	return ci, nil
 }

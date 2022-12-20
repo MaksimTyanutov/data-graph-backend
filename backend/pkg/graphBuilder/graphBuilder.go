@@ -8,19 +8,11 @@ import (
 )
 
 var colors = []string{
-	"#808080",
-	"#000000",
-	"#FF0000",
-	"#800080",
-	"#008000",
-	"#00FF00",
-	"#808000",
-	"#800000",
-	"#FFFF00",
-	"#000080",
-	"#0000FF",
-	"#008080",
-	"#00FFFF",
+	"#FF595E",
+	"#FFCA3A",
+	"#8AC926",
+	"#1982C4",
+	"#6A4C93",
 }
 
 // GET ALL PROJECTS
@@ -85,16 +77,34 @@ func GetLinks(projects []dataStructers.Project, short bool) []Link {
 					})
 				}
 			} else {
-				for j := 0; j < len(projects[i].PreviousNodeIds)-1; j++ {
+				for j := 0; j < len(projects[i].PreviousNodeIds); j++ {
+					isPresent := false
+					for k := 0; k < len(projects); k++ {
+						if projects[k].Id == projects[i].PreviousNodeIds[j] {
+							isPresent = true
+						}
+					}
+					if isPresent {
+						links = append(links, Link{
+							Source:  projects[i].PreviousNodeIds[j],
+							Target:  projects[i].Id,
+							Color:   colors[projects[i].CompanyId%len(colors)],
+							Opacity: standardOpacity,
+						})
+					}
+				}
+				if projects[i-1].ProjectId == projects[i].ProjectId {
 					links = append(links, Link{
-						Source:  projects[i].PreviousNodeIds[j],
+						Source:  projects[i-1].Id,
 						Target:  projects[i].Id,
 						Color:   colors[projects[i].CompanyId%len(colors)],
 						Opacity: standardOpacity,
 					})
 				}
+			}
+			if projects[i-1].CompanyId != projects[i].CompanyId {
 				links = append(links, Link{
-					Source:  projects[i-1].Id,
+					Source:  projects[i].CompanyId + properties.CompanyIdShift,
 					Target:  projects[i].Id,
 					Color:   colors[projects[i].CompanyId%len(colors)],
 					Opacity: standardOpacity,
