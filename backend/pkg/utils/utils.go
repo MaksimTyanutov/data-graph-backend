@@ -8,17 +8,22 @@ import (
 )
 
 func ValidateDates(MinDate string, MaxDate string) error {
-	if _, err := time.Parse(time.RFC3339, MinDate); err != nil {
+	var min, max time.Time
+	var err error
+	if min, err = time.Parse(time.RFC3339, MinDate); err != nil {
 		return errors.New("Date value is incorrect: " + MinDate + ". Error: " + err.Error())
 	}
-	if _, err := time.Parse(time.RFC3339, MaxDate); err != nil {
-		return errors.New("Date value is incorrect: " + MinDate + ". Error: " + err.Error())
+	if max, err = time.Parse(time.RFC3339, MaxDate); err != nil {
+		return errors.New("Date value is incorrect: " + MaxDate + ". Error: " + err.Error())
+	}
+	if min.After(max) {
+		return errors.New("Date value is incorrect: MinDate (" + MinDate + ") is later than MaxDate (" + MaxDate + ")")
 	}
 	return nil
 }
 
 func ValidateFilterCompany(companyFilters dataStructers.CompanyFilters) error {
-	err := ValidateDates(companyFilters.MaxDate, companyFilters.MinDate)
+	err := ValidateDates(companyFilters.MinDate, companyFilters.MaxDate)
 	if err != nil {
 		err_ := errors.New("Wrong date format: " + err.Error())
 		log.Print(err_)
@@ -33,7 +38,7 @@ func ValidateFilterCompany(companyFilters dataStructers.CompanyFilters) error {
 }
 
 func ValidateFilterProduct(productFilters dataStructers.ProductFilters) error {
-	err := ValidateDates(productFilters.MaxDate, productFilters.MinDate)
+	err := ValidateDates(productFilters.MinDate, productFilters.MaxDate)
 	if err != nil {
 		err_ := errors.New("Wrong date format: " + err.Error())
 		log.Print(err_)

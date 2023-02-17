@@ -14,7 +14,10 @@ func main() {
 		log.Fatal("Incorrect number of arguments: ", len(os.Args), ". Intended number - 2")
 	}
 
-	config := properties.GetConfig(os.Args[1])
+	config, err := properties.GetConfig(os.Args[1])
+	if err != nil {
+		log.Fatal("Can't get config at the path: " + os.Args[1])
+	}
 
 	logging.Init(config.ProgramSettings.LogPath)
 	logger := logging.GetLogger()

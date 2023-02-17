@@ -2,7 +2,7 @@ package properties
 
 import (
 	"bufio"
-	"fmt"
+	"errors"
 	"io"
 	"log"
 	"os"
@@ -27,11 +27,13 @@ type Config struct {
 	} `yaml:"ProgramSettings"`
 }
 
-func GetConfig(path string) *Config {
+func GetConfig(path string) (*Config, error) {
+	if path == "" {
+		return nil, errors.New("GetConfig error: path is nil")
+	}
 	file, err := os.Open(path)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return nil, errors.New("GetConfig error: " + err.Error())
 	}
 	defer func(file *os.File) {
 		err := file.Close()
@@ -51,5 +53,5 @@ func GetConfig(path string) *Config {
 		panic(err)
 	}
 
-	return &properties
+	return &properties, nil
 }

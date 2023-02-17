@@ -12,6 +12,7 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"data-graph-backend/pkg/graphBuilder"
 	"data-graph-backend/pkg/properties"
 )
 
@@ -448,4 +449,75 @@ func (con *PSQLConnector) GetAllProductName() ([]string, error) {
 		return nil, errors.New("GetAllProductName(2). Can't get Names from DB: " + err.Error())
 	}
 	return productNames, nil
+}
+
+// GET ALL PROJECTS FOR GRAPH
+func (con *PSQLConnector) GetProjectsGraph(minimized bool) ([]dataStructers.Project, error) {
+	projects := make([]dataStructers.Project, 0)
+	if !minimized {
+		projectsDb, err := con.GetAllProjects()
+		if err != nil {
+			return nil, errors.New("graphBuilder:GetProjects(1). GetAllProjects don't work: " + err.Error())
+		} else {
+			for i := 0; i < len(projectsDb); i++ {
+				project, err := projectsDb[i].Transform()
+				if err != nil {
+					return nil, errors.New("graphBuilder:GetProjects(2). Can't transform project. " + err.Error())
+				}
+				projects = append(projects, *project)
+			}
+		}
+	} else {
+		projectsDb, err := con.GetShortProjects()
+		if err != nil {
+			return nil, errors.New("graphBuilder:GetProjects(2). GetShortProjects don't work: " + err.Error())
+		} else {
+			for i := 0; i < len(projectsDb); i++ {
+				project, err := projectsDb[i].Transform()
+				if err != nil {
+					return nil, errors.New("graphBuilder:GetProjects(2). Can't transform project. " + err.Error())
+				}
+				projects = append(projects, *project)
+			}
+		}
+	}
+	return projects, nil
+}
+
+// GET ALL COMPANIES  FOR GRAPH
+func (con *PSQLConnector) GetCompaniesGraph() ([]dataStructers.Company, error) {
+	companiesDb, err := con.GetAllCompanies()
+	companies := make([]dataStructers.Company, 0)
+	if err != nil {
+		return nil, errors.New("graphBuilder:GetCompanies. GetAllCompanies don't work: " + err.Error())
+	} else {
+		for i := 0; i < len(companiesDb); i++ {
+			company := companiesDb[i].Transform()
+			companies = append(companies, company)
+		}
+	}
+	return companies, nil
+}
+
+func (con *PSQLConnector) GetGraph(minimized bool) (*graphBuilder.Graph, error) {
+	err := con.SetIdShift()
+	if err != nil {
+		return nil, err
+	}
+	companies, err := con.GetCompaniesGraph()
+	if err != nil {
+		return nil, errors.New("GetGraph(2): " + err.Error())
+	}
+	projects, err := con.GetProjectsGraph(minimized)
+	if err != nil {
+		return nil, errors.New("GetGraph(3): " + err.Error())
+	}
+	nodes := graphBuilder.TransformComp(companies)
+	projectsTransformed := graphBuilder.TransformProj(projects)
+	nodes = append(nodes, projectsTransformed...)
+	links := graphBuilder.GetLinks(projects, minimized)
+	return &graphBuilder.Graph{
+		Nodes: nodes,
+		Links: links,
+	}, nil
 }
