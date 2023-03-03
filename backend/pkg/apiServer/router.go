@@ -3,7 +3,6 @@ package apiServer
 import (
 	"data-graph-backend/pkg/dataStructers"
 	"data-graph-backend/pkg/dbConnector"
-	"data-graph-backend/pkg/graphBuilder"
 	"data-graph-backend/pkg/utils"
 	"encoding/json"
 	"github.com/sirupsen/logrus"
@@ -20,8 +19,8 @@ type Router struct {
 func configureRouters(r *Router) {
 	http.HandleFunc("/test", r.handleTestAnswer)
 	http.HandleFunc("/ping", r.handlePing)
-	//http.HandleFunc("/Companies", r.handleCompanies)
-	//http.HandleFunc("/Projects", r.handleProjects)
+	http.HandleFunc("/Companies", r.handleCompanies)
+	http.HandleFunc("/Projects", r.handleProjects)
 	http.HandleFunc("/get:full", r.handleGetGraphFull)
 	http.HandleFunc("/get:short", r.handleGetGraphShort)
 	http.HandleFunc("/company", r.handleCompany)
@@ -81,7 +80,7 @@ func (rout *Router) handleCompanies(rw http.ResponseWriter, r *http.Request) {
 
 // GET GRAPH FULL
 func (rout *Router) handleGetGraphFull(rw http.ResponseWriter, r *http.Request) {
-	graph, err := graphBuilder.GetGraph(rout.dbConnector, false)
+	graph, err := rout.dbConnector.GetGraph(false)
 	if err != nil {
 		rout.logger.Error("GetGraphFull don't work: ", err.Error())
 	}
@@ -91,7 +90,7 @@ func (rout *Router) handleGetGraphFull(rw http.ResponseWriter, r *http.Request) 
 
 // GET GRAPH SHORT
 func (rout *Router) handleGetGraphShort(rw http.ResponseWriter, r *http.Request) {
-	graph, err := graphBuilder.GetGraph(rout.dbConnector, true)
+	graph, err := rout.dbConnector.GetGraph(true)
 	rout.logger.Info("Sending short graph")
 	if err != nil {
 		rout.logger.Error("GetGraphShort don't work: ", err.Error())
