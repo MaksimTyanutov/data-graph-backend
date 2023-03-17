@@ -32,10 +32,11 @@ func TestValidateDates(t *testing.T) {
 			expectedError: errors.New("Date value is incorrect: " + "2000-01-01T00" + ". Error: parsing time \"2000-01-01T00\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"\" as \":\""),
 		},
 		{
-			name:          "Empty strings",
-			minDate:       "",
-			maxDate:       "",
-			expectedError: errors.New("Date value is incorrect: " + "" + ". Error: parsing time \"\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"\" as \"2006\""),
+			name:    "Empty strings",
+			minDate: "",
+			maxDate: "",
+			expectedError: errors.New("Date value is incorrect: " + "" + ". Error: parsing time \"\" " +
+				"as \"2006-01-02T15:04:05Z07:00\": cannot parse \"\" as \"2006\""),
 		},
 		{
 			name:          "Min bigger than max date",

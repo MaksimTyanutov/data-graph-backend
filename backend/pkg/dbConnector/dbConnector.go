@@ -41,6 +41,13 @@ type PSQLConnector struct {
 	db     *sql.DB
 }
 
+func (con *PSQLConnector) Ping() error {
+	if err := con.db.Ping(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewConnection(config *properties.Config, logger *logrus.Logger) (*PSQLConnector, error) {
 	db_, err := newDB(config)
 	if err != nil {

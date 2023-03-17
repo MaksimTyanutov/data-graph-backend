@@ -12,48 +12,52 @@ import (
 )
 
 type Router struct {
-	logger      *logrus.Logger
-	dbConnector *dbConnector.PSQLConnector
+	Logger      *logrus.Logger
+	DbConnector *dbConnector.PSQLConnector
 }
 
-func configureRouters(r *Router) {
-	http.HandleFunc("/test", r.handleTestAnswer)
-	http.HandleFunc("/ping", r.handlePing)
+func ConfigureRouters(r *Router) {
+	http.HandleFunc("/test", r.HandleTestAnswer)
+	http.HandleFunc("/ping", r.HandlePingDB)
 	http.HandleFunc("/Companies", r.handleCompanies)
 	http.HandleFunc("/Projects", r.handleProjects)
-	http.HandleFunc("/get:full", r.handleGetGraphFull)
-	http.HandleFunc("/get:short", r.handleGetGraphShort)
-	http.HandleFunc("/company", r.handleCompany)
-	http.HandleFunc("/product", r.handleProduct)
+	http.HandleFunc("/get:full", r.HandleGetGraphFull)
+	http.HandleFunc("/get:short", r.HandleGetGraphShort)
+	http.HandleFunc("/company", r.HandleCompany)
+	http.HandleFunc("/product", r.HandleProduct)
 	http.HandleFunc("/link/products", r.handleTimelineProduct)
 	http.HandleFunc("/link/company", r.handleTimelineCompany)
 	http.HandleFunc("/departments", r.handleGetAllDepartments)
-	http.HandleFunc("/filterPresets", r.handleGetFilterPresets)
-	http.HandleFunc("/filterCompany", r.handleFilterCompany)
-	http.HandleFunc("/filterProduct", r.handleFilterProduct)
+	http.HandleFunc("/filterPresets", r.HandleGetFilterPresets)
+	http.HandleFunc("/filterCompany", r.HandleFilterCompany)
+	http.HandleFunc("/filterProduct", r.HandleFilterProduct)
 }
 
-func (rout *Router) handleTestAnswer(rw http.ResponseWriter, r *http.Request) {
+func (rout *Router) HandleTestAnswer(rw http.ResponseWriter, r *http.Request) {
 	rout.setCorsHeaders(&rw)
 	rout.respond(rw, r, http.StatusOK, "test")
 }
 
-func (rout *Router) handlePing(rw http.ResponseWriter, r *http.Request) {
+func (rout *Router) HandlePingDB(rw http.ResponseWriter, r *http.Request) {
 	rout.setCorsHeaders(&rw)
+	if err := rout.DbConnector.Ping(); err != nil {
+		rout.respond(rw, r, http.StatusInternalServerError, "Database not responding")
+		return
+	}
 	rout.respond(rw, r, http.StatusOK, "OK")
 }
 
 // GET ALL PROJECTS
 func (rout *Router) handleProjects(rw http.ResponseWriter, r *http.Request) {
-	projectsDb, err := rout.dbConnector.GetAllProjects()
+	projectsDb, err := rout.DbConnector.GetAllProjects()
 	projects := make([]dataStructers.Project, 0)
 	if err != nil {
-		rout.logger.Error("GetAllProjects don't work: " + err.Error())
+		rout.Logger.Error("GetAllProjects don't work: " + err.Error())
 	} else {
 		for i := 0; i < len(projectsDb); i++ {
 			project, err := projectsDb[i].Transform()
 			if err != nil {
-				rout.logger.Error("GetAllProjects don't work: " + err.Error())
+				rout.Logger.Error("GetAllProjects don't work: " + err.Error())
 			}
 			projects = append(projects, *project)
 		}
@@ -64,10 +68,10 @@ func (rout *Router) handleProjects(rw http.ResponseWriter, r *http.Request) {
 
 // GET ALL COMPANIES
 func (rout *Router) handleCompanies(rw http.ResponseWriter, r *http.Request) {
-	companiesDb, err := rout.dbConnector.GetAllCompanies()
+	companiesDb, err := rout.DbConnector.GetAllCompanies()
 	companies := make([]dataStructers.Company, 0)
 	if err != nil {
-		rout.logger.Error("GetAllCompanies don't work: ", err.Error())
+		rout.Logger.Error("GetAllCompanies don't work: ", err.Error())
 	} else {
 		for i := 0; i < len(companiesDb); i++ {
 			company := companiesDb[i].Transform()
@@ -79,48 +83,50 @@ func (rout *Router) handleCompanies(rw http.ResponseWriter, r *http.Request) {
 }
 
 // GET GRAPH FULL
-func (rout *Router) handleGetGraphFull(rw http.ResponseWriter, r *http.Request) {
-	graph, err := rout.dbConnector.GetGraph(false)
+func (rout *Router) HandleGetGraphFull(rw http.ResponseWriter, r *http.Request) {
+	graph, err := rout.DbConnector.GetGraph(false)
 	if err != nil {
-		rout.logger.Error("GetGraphFull don't work: ", err.Error())
+		rout.Logger.Error("GetGraphFull don't work: ", err.Error())
 	}
 	rout.setCorsHeaders(&rw)
 	rout.respond(rw, r, http.StatusOK, graph)
 }
 
 // GET GRAPH SHORT
-func (rout *Router) handleGetGraphShort(rw http.ResponseWriter, r *http.Request) {
-	graph, err := rout.dbConnector.GetGraph(true)
-	rout.logger.Info("Sending short graph")
+func (rout *Router) HandleGetGraphShort(rw http.ResponseWriter, r *http.Request) {
+	graph, err := rout.DbConnector.GetGraph(true)
+	rout.Logger.Info("Sending short graph")
 	if err != nil {
-		rout.logger.Error("GetGraphShort don't work: ", err.Error())
+		rout.Logger.Error("GetGraphShort don't work: ", err.Error())
 	}
 	rout.setCorsHeaders(&rw)
 	rout.respond(rw, r, http.StatusOK, graph)
-	rout.logger.Info("Successful short graph")
+	rout.Logger.Info("Successful short graph")
 }
 
 // Get company information
-func (rout *Router) handleCompany(rw http.ResponseWriter, r *http.Request) {
+func (rout *Router) HandleCompany(rw http.ResponseWriter, r *http.Request) {
 	idStr := r.FormValue("id")
-	companyID, err := strconv.Atoi(idStr)
-	company, err := rout.dbConnector.GetCompanyInfo(companyID)
-	if err != nil {
-		rout.logger.Error("GetCompanyInfo don't work: ", err.Error())
-	}
 	rout.setCorsHeaders(&rw)
+	companyID, err := strconv.Atoi(idStr)
+	company, err := rout.DbConnector.GetCompanyInfo(companyID)
+	if err != nil {
+		rout.Logger.Error("GetCompanyInfo don't work: ", err.Error())
+		rout.respond(rw, r, http.StatusBadRequest, "Wrong argument: "+err.Error())
+	}
 	rout.respond(rw, r, http.StatusOK, company)
 }
 
 // Get product information
-func (rout *Router) handleProduct(rw http.ResponseWriter, r *http.Request) {
+func (rout *Router) HandleProduct(rw http.ResponseWriter, r *http.Request) {
 	idStr := r.FormValue("id")
-	productID, err := strconv.Atoi(idStr)
-	product, err := rout.dbConnector.GetProductInfo(productID)
-	if err != nil {
-		rout.logger.Error("GetCompanyInfo don't work: ", err.Error())
-	}
 	rout.setCorsHeaders(&rw)
+	productID, err := strconv.Atoi(idStr)
+	product, err := rout.DbConnector.GetProductInfo(productID)
+	if err != nil {
+		rout.Logger.Error("GetCompanyInfo don't work: ", err.Error())
+		rout.respond(rw, r, http.StatusBadRequest, "Wrong argument: "+err.Error())
+	}
 	rout.respond(rw, r, http.StatusOK, product)
 }
 
@@ -129,23 +135,23 @@ func (rout *Router) handleTimelineCompany(rw http.ResponseWriter, r *http.Reques
 	targetIdStr := r.FormValue("target")
 	targetID, err := strconv.Atoi(targetIdStr)
 	if err != nil {
-		rout.logger.Error("Can't convert to number - "+targetIdStr+". Error: ", err.Error())
+		rout.Logger.Error("Can't convert to number - "+targetIdStr+". Error: ", err.Error())
 	}
 	sourceIdStr := r.FormValue("source")
 	sourceID, err := strconv.Atoi(sourceIdStr)
 	if err != nil {
-		rout.logger.Error("Can't convert to number - "+sourceIdStr+". Error: ", err.Error())
+		rout.Logger.Error("Can't convert to number - "+sourceIdStr+". Error: ", err.Error())
 	}
 
-	source, err := rout.dbConnector.GetCompanyInfo(sourceID)
+	source, err := rout.DbConnector.GetCompanyInfo(sourceID)
 	if err != nil {
-		rout.logger.Error("GetCompanyInfo don't work: ", err.Error())
+		rout.Logger.Error("GetCompanyInfo don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
-	target, err := rout.dbConnector.GetProductInfo(targetID)
+	target, err := rout.DbConnector.GetProductInfo(targetID)
 	if err != nil {
-		rout.logger.Error("GetProductInfo don't work: ", err.Error())
+		rout.Logger.Error("GetProductInfo don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
@@ -178,23 +184,23 @@ func (rout *Router) handleTimelineProduct(rw http.ResponseWriter, r *http.Reques
 	targetIdStr := r.FormValue("target")
 	targetID, err := strconv.Atoi(targetIdStr)
 	if err != nil {
-		rout.logger.Error("Can't convert to number - "+targetIdStr+". Error: ", err.Error())
+		rout.Logger.Error("Can't convert to number - "+targetIdStr+". Error: ", err.Error())
 	}
 	sourceIdStr := r.FormValue("source")
 	sourceID, err := strconv.Atoi(sourceIdStr)
 	if err != nil {
-		rout.logger.Error("Can't convert to number - "+sourceIdStr+". Error: ", err.Error())
+		rout.Logger.Error("Can't convert to number - "+sourceIdStr+". Error: ", err.Error())
 	}
 
-	source, err := rout.dbConnector.GetProductInfo(sourceID)
+	source, err := rout.DbConnector.GetProductInfo(sourceID)
 	if err != nil {
-		rout.logger.Error("GetProductInfo don't work: ", err.Error())
+		rout.Logger.Error("GetProductInfo don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
-	target, err := rout.dbConnector.GetProductInfo(targetID)
+	target, err := rout.DbConnector.GetProductInfo(targetID)
 	if err != nil {
-		rout.logger.Error("GetProductInfo don't work: ", err.Error())
+		rout.Logger.Error("GetProductInfo don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
@@ -223,9 +229,9 @@ func (rout *Router) handleTimelineProduct(rw http.ResponseWriter, r *http.Reques
 }
 
 func (rout *Router) handleGetAllDepartments(rw http.ResponseWriter, r *http.Request) {
-	departments, err := rout.dbConnector.GetAllDepartments()
+	departments, err := rout.DbConnector.GetAllDepartments()
 	if err != nil {
-		rout.logger.Error("GetAllDepartments don't work: ", err.Error())
+		rout.Logger.Error("GetAllDepartments don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
@@ -233,16 +239,16 @@ func (rout *Router) handleGetAllDepartments(rw http.ResponseWriter, r *http.Requ
 	rout.respond(rw, r, http.StatusOK, departments)
 }
 
-func (rout *Router) handleGetFilterPresets(rw http.ResponseWriter, r *http.Request) {
-	companyFilters, err := rout.dbConnector.GetCompanyFilters()
+func (rout *Router) HandleGetFilterPresets(rw http.ResponseWriter, r *http.Request) {
+	companyFilters, err := rout.DbConnector.GetCompanyFilters()
 	if err != nil {
-		rout.logger.Error("GetFilterPresets(1) don't work: ", err.Error())
+		rout.Logger.Error("GetFilterPresets(1) don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
-	productFilters, err := rout.dbConnector.GetProductFilters()
+	productFilters, err := rout.DbConnector.GetProductFilters()
 	if err != nil {
-		rout.logger.Error("GetFilterPresets(2) don't work: ", err.Error())
+		rout.Logger.Error("GetFilterPresets(2) don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
@@ -254,7 +260,7 @@ func (rout *Router) handleGetFilterPresets(rw http.ResponseWriter, r *http.Reque
 	rout.respond(rw, r, http.StatusOK, filterPresets)
 }
 
-func (rout *Router) handleFilterCompany(rw http.ResponseWriter, r *http.Request) {
+func (rout *Router) HandleFilterCompany(rw http.ResponseWriter, r *http.Request) {
 	rout.setCorsHeaders(&rw)
 	if r.Method == "OPTIONS" {
 		return
@@ -268,25 +274,25 @@ func (rout *Router) handleFilterCompany(rw http.ResponseWriter, r *http.Request)
 	var companyFilters dataStructers.CompanyFilters
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		rout.logger.Error("FilterCompany(1) don't work: ", err.Error())
+		rout.Logger.Error("FilterCompany(1) don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
 	err = json.Unmarshal(data, &companyFilters)
 	if err != nil {
-		rout.logger.Error("FilterCompany(2). Filters unmarshall don't work: ", err.Error())
+		rout.Logger.Error("FilterCompany(2). Filters unmarshall don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
 	err = utils.ValidateFilterCompany(companyFilters)
 	if err != nil {
-		rout.logger.Error(err.Error())
+		rout.Logger.Error(err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
-	idArray, err := rout.dbConnector.GetFiltersIDCompany(companyFilters)
+	idArray, err := rout.DbConnector.GetFiltersIDCompany(companyFilters)
 	if err != nil {
-		rout.logger.Error("GetFiltersID don't work: ", err.Error())
+		rout.Logger.Error("GetFiltersID don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
@@ -294,7 +300,7 @@ func (rout *Router) handleFilterCompany(rw http.ResponseWriter, r *http.Request)
 	rout.respond(rw, r, http.StatusOK, idArray)
 }
 
-func (rout *Router) handleFilterProduct(rw http.ResponseWriter, r *http.Request) {
+func (rout *Router) HandleFilterProduct(rw http.ResponseWriter, r *http.Request) {
 	rout.setCorsHeaders(&rw)
 	if r.Method == "OPTIONS" {
 		return
@@ -308,25 +314,25 @@ func (rout *Router) handleFilterProduct(rw http.ResponseWriter, r *http.Request)
 	var productFilters dataStructers.ProductFilters
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		rout.logger.Error("handleFilterProduct(1) don't work: ", err.Error())
+		rout.Logger.Error("HandleFilterProduct(1) don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
 	err = json.Unmarshal(data, &productFilters)
 	if err != nil {
-		rout.logger.Error("handleFilterProduct(2). Filters unmarshall don't work: ", err.Error())
+		rout.Logger.Error("HandleFilterProduct(2). Filters unmarshall don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
 	err = utils.ValidateFilterProduct(productFilters)
 	if err != nil {
-		rout.logger.Error(err.Error())
+		rout.Logger.Error(err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
-	idArray, err := rout.dbConnector.GetFiltersIDProduct(productFilters)
+	idArray, err := rout.DbConnector.GetFiltersIDProduct(productFilters)
 	if err != nil {
-		rout.logger.Error("handleFilterProduct(3) don't work: ", err.Error())
+		rout.Logger.Error("HandleFilterProduct(3) don't work: ", err.Error())
 		rout.respond(rw, r, http.StatusBadRequest, err)
 		return
 	}
@@ -355,7 +361,7 @@ func (rout *Router) respond(w http.ResponseWriter, r *http.Request, code int, da
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		err := json.NewEncoder(w).Encode(date)
 		if err != nil {
-			rout.logger.Error("Error while responding: " + err.Error() + ".\nRequest: " + r.URL.String())
+			rout.Logger.Error("Error while responding: " + err.Error() + ".\nRequest: " + r.URL.String())
 		}
 	}
 }

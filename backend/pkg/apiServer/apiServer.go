@@ -24,11 +24,11 @@ func Start(config *properties.Config, logger *logrus.Logger) error {
 
 	logger.Info("Connection successful")
 	router := &Router{
-		logger:      logger,
-		dbConnector: dbConnection,
+		Logger:      logger,
+		DbConnector: dbConnection,
 	}
 
-	configureRouters(router)
+	ConfigureRouters(router)
 
 	logger.Info("Listening on " + config.ProgramSettings.Host + config.ProgramSettings.Port)
 	log.Println("Listening on " + config.ProgramSettings.Host + config.ProgramSettings.Port)
