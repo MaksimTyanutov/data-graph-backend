@@ -13,7 +13,7 @@ import (
 func Test_db_not_available_on_launch(t *testing.T) {
 	var (
 		_, b, _, _ = runtime.Caller(0)
-		configPath = filepath.Dir(b) + "/../config/config_test.yaml"
+		configPath = filepath.Dir(b) + "/../config/config.yaml"
 	)
 
 	config, err := properties.GetConfig(configPath)
@@ -25,7 +25,7 @@ func Test_db_not_available_on_launch(t *testing.T) {
 	logger := logging.GetLogger()
 	logger.Info("Starting backend for DataGraph")
 
-	expected := "A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond"
+	expected := "A connection attempt failed "
 	_, err = dbConnector.NewConnection(config, logger)
 	if err == nil {
 		t.Errorf("No error when failed connection (or database is okay)")

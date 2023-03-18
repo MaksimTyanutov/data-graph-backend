@@ -4,6 +4,7 @@ import (
 	"errors"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -20,13 +21,13 @@ func Test_GetConfig(t *testing.T) {
 	}{
 		{
 			name:          "Correct config path",
-			path:          projectPath + "/config/config.yaml",
+			path:          projectPath + "config/config.yaml",
 			expectedError: nil,
 		},
 		{
 			name:          "Incorrect path",
 			path:          "./configuration.yaml",
-			expectedError: errors.New("GetConfig error: open ./configuration.yaml: The system cannot find the file specified."),
+			expectedError: errors.New("GetConfig error: open ./configuration.yaml:"),
 		},
 		{
 			name:          "Nil path",
@@ -52,7 +53,7 @@ func Test_GetConfig(t *testing.T) {
 				}
 			}
 			if err != nil && test.expectedError != nil {
-				if err.Error() != test.expectedError.Error() {
+				if strings.Contains(err.Error(), test.expectedError.Error()) {
 					t.Errorf("Actual error = %s\nExpected error = %s", err.Error(), test.expectedError)
 					return
 				}

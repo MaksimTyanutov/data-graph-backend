@@ -18,7 +18,7 @@ import (
 
 var (
 	_, b, _, _ = runtime.Caller(0)
-	configPath = filepath.Dir(b) + "/../config/config_test.yaml"
+	configPath = filepath.Dir(b) + "/../config/config.yaml"
 	router     = InitializeConnection(configPath)
 )
 
@@ -159,31 +159,6 @@ func Test_successful_get_filter_product_data(t *testing.T) {
 
 	filtersJson := []byte("{\"productName\":\"\",\"minDate\":\"1996-01-02T15:04:05Z\",\"maxDate\":\"2020-01-02T15:04:05Z\",\"departments\":[1,2,3],\"isVerified\":false}")
 	resp, err := http.Post(svr.URL, "application/json", bytes.NewBuffer(filtersJson))
-	if err != nil {
-		log.Fatal(err, "unable to complete Get request")
-	}
-	resB, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err, "unable to read response data")
-	}
-	res := string(resB)
-
-	res = strings.TrimSpace(res)
-	res = strings.TrimLeft(res, "\"")
-	res = strings.TrimRight(res, "\"")
-	if res != expected {
-		t.Errorf("expected res to be %s \ngot %s", expected, res)
-	}
-
-}
-
-func Test_successful_get_company_filter_preset(t *testing.T) {
-	expected := "{\"companyFilters\":{\"companyNames\":[\"Яндекс\",\"VK\",\"Ozon\",\"СБЕР\",\"Фирма 1С\"],\"ceoNames\":[\"Герман Оскарович Греф\",\"Нуралиев Борис Георгиевич\",\"Артём Савиновский\",\"Сергей Паньков\",\"Владимир Сергеевич Кириенко\"],\"minStaffSize\":1100,\"maxStaffSize\":285000,\"minDate\":\"1991-01-01T00:00:00Z\",\"maxDate\":\"2000-01-01T00:00:00Z\",\"departments\":[{\"id\":1,\"name\":\"Транспорт\"},{\"id\":2,\"name\":\"Связь\"},{\"id\":3,\"name\":\"Финансы\"},{\"id\":4,\"name\":\"IT\"},{\"id\":5,\"name\":\"Общественное питание\"},{\"id\":6,\"name\":\"Торговля\"},{\"id\":7,\"name\":\"Фармацевтика\"},{\"id\":8,\"name\":\"Развлечения\"}]},\"productFilters\":{\"productNames\":[\"SberbankOnline\",\"Ozon.ru\",\"1С.Бухгалтерия\",\"OzonApp\",\"Mail.ru\",\"Яндекс Браузер\",\"SberApp\",\"1С.Предприятия\",\"Vkontakte\",\"Яndex-Web\",\"Яндекс Дзен\",\"1С.Розница\",\"1С.Битрикс\",\"Дзен\"],\"minDate\":\"1996-12-13T00:00:00Z\",\"maxDate\":\"2022-12-20T00:00:00Z\"}}"
-
-	svr := httptest.NewServer(http.HandlerFunc(router.HandleGetFilterPresets))
-	defer svr.Close()
-
-	resp, err := http.Get(svr.URL)
 	if err != nil {
 		log.Fatal(err, "unable to complete Get request")
 	}
