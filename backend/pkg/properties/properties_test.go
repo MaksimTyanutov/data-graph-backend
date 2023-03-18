@@ -53,7 +53,7 @@ func Test_GetConfig(t *testing.T) {
 				}
 			}
 			if err != nil && test.expectedError != nil {
-				if strings.Contains(err.Error(), test.expectedError.Error()) {
+				if !strings.Contains(err.Error(), test.expectedError.Error()) {
 					t.Errorf("Actual error = %s\nExpected error = %s", err.Error(), test.expectedError)
 					return
 				}
