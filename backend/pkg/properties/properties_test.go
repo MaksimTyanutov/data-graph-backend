@@ -10,7 +10,7 @@ import (
 
 var (
 	_, b, _, _  = runtime.Caller(0)
-	projectPath = filepath.Dir(b) + "/../../"
+	projectPath = filepath.Dir(filepath.Dir(filepath.Dir(b)))
 )
 
 func Test_GetConfig(t *testing.T) {
@@ -21,7 +21,7 @@ func Test_GetConfig(t *testing.T) {
 	}{
 		{
 			name:          "Correct config path",
-			path:          projectPath + "config/config.yaml",
+			path:          projectPath + "/config/config.yaml",
 			expectedError: nil,
 		},
 		{
