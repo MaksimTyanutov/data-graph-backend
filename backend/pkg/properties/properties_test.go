@@ -21,7 +21,7 @@ func Test_GetConfig(t *testing.T) {
 	}{
 		{
 			name:          "Correct config path",
-			path:          projectPath + "/config/config.yaml",
+			path:          projectPath + "/config/config_example.yaml",
 			expectedError: nil,
 		},
 		{
